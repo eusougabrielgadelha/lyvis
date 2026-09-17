@@ -398,6 +398,21 @@ alter table orders              enable row level security;
 alter table integrations        enable row level security;
 alter table events              enable row level security;
 alter table audit_log           enable row level security;
+alter table plans                  enable row level security;
+alter table features               enable row level security;
+alter table plan_features          enable row level security;
+alter table room_retention_buckets enable row level security;
+alter table event_deliveries       enable row level security;
+
+-- Catálogo de planos e módulos: leitura para qualquer autenticado
+create policy plans_read on plans
+  for select to authenticated using (true);
+
+create policy features_read on features
+  for select to authenticated using (true);
+
+create policy plan_features_read on plan_features
+  for select to authenticated using (true);
 
 -- Membros enxergam a própria conta
 create policy account_read on accounts
