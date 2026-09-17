@@ -1,156 +1,209 @@
-# Lyvo — Plano de Ação (30 dias)
+# Lyvo — Plano de Ação (escopo completo)
 
-> Criado em 2026-09-17 · Execução: Gabriel + Claude Code · Alvo: beta com cliente da Sylo · Primeira live real até **2026-10-17**
+> Criado em 2026-09-17 · Revisado em 2026-09-17 (escopo completo, nada cortado)
+> Execução: Gabriel + Claude Code · Primeira live de cliente: **2026-10-17** · Produto completo: **2026-11-21**
 
 ## Premissas
 
 | Definição | Valor |
 |---|---|
 | Quem constrói | Gabriel + Claude Code |
-| Alvo do MVP | Beta com cliente da Sylo (Henrique, Leonardo, Paulo ou Criis) |
-| Prazo | 30 dias até a primeira live real |
-| Custo mensal previsto | ~US$ 100 (Supabase Pro 25 + LiveKit Ship 50 + Vercel 20) + consumo |
+| Escopo | **Completo.** Nenhum módulo sai do plano |
+| Primeira live de cliente | 2026-10-17 (beta com cliente da Sylo) |
+| Produto completo no ar | 2026-11-21 |
+| Custo mensal | ~US$ 100 (Supabase Pro 25 + LiveKit Ship 50 + Vercel 20) + consumo |
 
-## Regra que protege o prazo
+## A conta do esforço
 
-> [!danger] A live de cliente é a **última** etapa, não a primeira.
+Estimativa por módulo, em dias de trabalho focado, já contando a aceleração do Claude Code:
+
+| Módulo | Dias |
+|---|---|
+| Fundações + spikes de risco | 2 |
+| Base SaaS (contas, membros, planos, módulos, `can()`) | 3 |
+| Sala ao vivo + chat + gate de inscrição + leads | 5 |
+| Motor do pitch + construtor + 4 adaptadores de checkout | 7 |
+| Pixels, CAPI, webhooks de venda, espectadores exibidos | 3 |
+| Cobrança (Stripe ou Asaas, assentos, limites) | 4 |
+| Painel admin (contas, módulos, entrar como cliente, auditoria) | 4 |
+| Modo sala (grade, mão levantada, permissões) | 4 |
+| Analytics (sinais, agregação, retenção, funil) | 5 |
+| Integrações (outbox, webhook assinado, API, Zapier, Make, ActiveCampaign) | 6 |
+| Carga, celular, reconexão, runbook, onboarding | 5 |
+| **Total** | **~48 dias úteis** |
+
+48 dias úteis são **9 a 10 semanas** em ritmo integral. Conciliando com a operação da Sylo, 12 semanas.
+
+**Como isso vira 9 semanas:** a primeira live de cliente continua em **17/10**, rodando com o que estiver pronto (que já é o produto inteiro do ponto de vista dele: live, chat, lead, pitch, checkout e rastreio). O resto entra com o beta já rodando, alimentado por uso real.
+
+> [!tip] Três alavancas pra comprimir o prazo
+> 1. **Paralelizar com agentes.** Painel admin, integrações e analytics quase não se cruzam com o resto — dá pra rodar em workflow multi-agente enquanto você toca o núcleo. Se quiser, é só pedir.
+> 2. **Contratar um dev** só pros módulos independentes (admin e integrações) a partir da Fase 3.
+> 3. **Blocos diários maiores.** A conta acima pressupõe 2 a 3 horas por dia. Dobrar isso corta o calendário quase pela metade.
+
+## Regra que protege o beta
+
+> [!danger] A live de cliente é precedida por duas outras.
 > Ordem obrigatória: live interna (só eu) → live com a minha audiência → live de cliente.
-> Toda transmissão do beta tem plano B pronto (link de Zoom ou YouTube num card na tela), e o cliente sabe disso antes.
+> Toda transmissão do beta tem plano B na tela (card com link alternativo acionado pelo host), combinado por escrito com o cliente antes.
 
-## Fora do escopo dos 30 dias
+---
 
-Sai agora, entra depois. Escopo que cresce mata o prazo:
-
-- ❌ Modo sala (Zoom) — só live
-- ❌ Cobrança e assinatura — conta criada na mão
-- ❌ Painel admin — gerencio direto pelo Supabase
-- ❌ Curva de retenção e relatórios — só exportação de leads em CSV
-- ❌ Integrações (Zapier, Make, ActiveCampaign)
-- ❌ Construtor com arrastar e soltar — formulário simples resolve
-- ❌ Múltiplos planos — todo mundo com tudo liberado no beta
-- ❌ Domínio próprio por cliente
-
-## Semana 0 — Fundações e prova de risco (2 dias)
-
-O objetivo aqui é **descobrir cedo se algo não funciona**, antes de construir por cima.
+## Fase 0 — Fundações e prova de risco (18–19/09)
 
 **Marca e contas**
 - [ ] Registrar `lyvo.com.br` no Registro.br
-- [ ] Busca no INPI, classe 42, por marcas parecidas
+- [ ] Busca no INPI, classe 42
 - [ ] Garantir `@lyvo` no Instagram e YouTube
-- [ ] Criar projeto no Supabase, aplicar as migrations, conferir advisors
-- [ ] Criar projeto no LiveKit Cloud (plano Ship) e pegar as chaves
-- [ ] Scaffold Next.js no repo + deploy na Vercel (página vazia já no ar)
+- [ ] Projeto no Supabase + migrations aplicadas + advisors conferidos
+- [ ] Projeto no LiveKit Cloud (Ship) com as chaves
+- [ ] Scaffold Next.js + deploy na Vercel
 
 **Spike 1 — Checkout dentro do React** ⚠️ *maior risco do projeto*
-- [ ] Página com vídeo em cima e área de pitch embaixo
-- [ ] Carregar o script da Eduzz (Checkout Elements) **no momento** em que o bloco aparece
-- [ ] Carregar o widget da Hotmart pelo botão, sem recarregar a página
-- [ ] Testar no celular: o vídeo continua tocando?
-- [ ] Testar montar, desmontar e montar de novo (host libera, encerra, libera)
+- [ ] Vídeo em cima, área de pitch embaixo
+- [ ] Script da Eduzz (Checkout Elements) carregado **no momento** em que o bloco aparece
+- [ ] Widget da Hotmart pelo botão, sem recarregar a página
+- [ ] Celular: o vídeo continua tocando?
+- [ ] Montar, desmontar e montar de novo
 
 **Spike 2 — LiveKit**
-- [ ] Sala com host pelo navegador + 1 espectador
-- [ ] Entrada via OBS (RTMP) na mesma sala
-- [ ] Medir latência real entre host e espectador
-- [ ] Testar queda de internet e reconexão
+- [ ] Host pelo navegador + espectador + entrada via OBS (RTMP)
+- [ ] Medir latência real
+- [ ] Queda de internet e reconexão
 
-> [!warning] Ponto de decisão, fim da Semana 0
-> Se o Spike 1 falhar com Eduzz e Hotmart, o modo padrão passa a ser janela separada + player flutuante, e isso precisa ser decidido **antes** de escrever a tela da sala.
+> [!warning] Ponto de decisão (19/09)
+> Se o Spike 1 falhar nas duas plataformas, janela separada + player flutuante vira o modo padrão. Isso muda a tela da sala e precisa ser decidido antes.
 
-## Semana 1 — Sala ao vivo funcionando
+## Fase 1 — Base SaaS + sala ao vivo (22/09 – 03/10)
 
-**Objetivo:** fazer uma live de 20 minutos com 10 convidados, com chat, e baixar a lista de quem entrou.
+**Base multi-cliente**
+- [ ] Login (Supabase Auth) + criação de conta e convite de membros
+- [ ] Papéis: dono, admin, apresentador, moderador
+- [ ] Planos, módulos e limites; `can(accountId, key)` verificado no servidor
+- [ ] Exceção por conta (`account_features`) com prazo
+- [ ] Limite de assentos aplicado no convite
 
-- [ ] Login do cliente (Supabase Auth) + conta criada na mão
-- [ ] Criar sala: título, modo live, horário
-- [ ] Token do LiveKit gerado no servidor, com papel de host ou espectador
-- [ ] Página do espectador: vídeo + chat, no celular primeiro
-- [ ] Painel do host: entrar no ar, encerrar, ver quantos estão online
-- [ ] Gate de inscrição: nome + e-mail e/ou telefone, configurável por sala
-- [ ] Identificador assinado do espectador no navegador
-- [ ] Chat em tempo real com nome do inscrito + moderação básica (apagar, banir, modo lento)
-- [ ] Gravar `viewer_sessions` com entrada, saída e tempo assistido
-- [ ] Exportar leads em CSV
+**Sala ao vivo**
+- [ ] Criar sala: título, modo, horário, configurações
+- [ ] Token do LiveKit no servidor, por papel
+- [ ] Página do espectador (celular primeiro) + painel do host
+- [ ] Entrada por navegador e por OBS
+- [ ] Gate de inscrição configurável (assistir ou só falar no chat)
+- [ ] Identificador assinado do espectador
+- [ ] Chat em tempo real + moderação (apagar, banir, modo lento)
+- [ ] `viewer_sessions` com entrada, saída e tempo assistido
+- [ ] Leads normalizados (e-mail minúsculo, telefone E.164) + exportação CSV
+- [ ] Consentimento LGPD datado
 
-**Pronto quando:** live de 20 min com 10 pessoas, chat funcionando, CSV baixado com os dados certos.
+**Marco 26/09:** live interna de 20 min com 10 convidados e CSV baixado.
 
-## Semana 2 — Motor do pitch
+## Fase 2 — Pitch completo e rastreio (06/10 – 17/10)
 
-**Objetivo:** o coração do produto. `quiz → checkout` funcionando com compra real.
-
-- [ ] Registro de blocos + schema Zod por bloco
-- [ ] Blocos: texto, botão, quiz, checkout (timer fica pra depois)
-- [ ] Editor simples de pitch (formulário, sem arrastar e soltar)
-- [ ] Motor do fluxo: etapas, regra de "próximo", ramificação por resposta do quiz
-- [ ] Liberação: grava ativação + broadcast; navegador já tem a definição baixada
-- [ ] Quem entra depois do pitch também vê a oferta
-- [ ] Adaptadores de checkout: Eduzz (inline), Hotmart (pop-up), Kiwify e Xgrow (janela + player flutuante)
-- [ ] Contexto no checkout: respostas do quiz + UTM + room_id
-- [ ] Gravar `pitch_events` e `quiz_responses`
-
-**Pronto quando:** live de teste em que eu libero `quiz → checkout` e alguém compra de verdade um produto de R$ 1, com a venda aparecendo ligada ao pitch.
-
-## Semana 3 — Confiança, rastreio e ensaio geral
-
-**Objetivo:** aguentar gente de verdade sem cair.
-
+- [ ] Registro de blocos + schema Zod por bloco + `feature` por bloco
+- [ ] Blocos: texto, botão, quiz, timer, checkout
+- [ ] Construtor com arrastar e soltar (dnd-kit): etapas, ordem, ramificação
+- [ ] Motor do fluxo (XState): etapas, condição por resposta, quem entra depois
+- [ ] Liberação por broadcast, com definição já baixada na entrada
+- [ ] Adaptadores: Eduzz (inline), Hotmart (pop-up), Kiwify e Xgrow (janela + player flutuante)
+- [ ] Contexto no checkout: respostas + UTM + room_id
+- [ ] `pitch_events` e `quiz_responses`
 - [ ] Webhooks das 4 plataformas → `orders`
-- [ ] Aviso real de compra no chat, vindo do webhook
-- [ ] Pixel da Meta + CAPI com `event_id` compartilhado; GA4 e Google Ads
-- [ ] Espectadores exibidos (mín/máx, curva, mesmo número pra todos)
-- [ ] Painel do host mostrando "reais × exibido"
-- [ ] Teste de carga: 300 espectadores simulados (k6) no chat e na liberação do pitch
-- [ ] Reconexão: queda de rede do host e do espectador
-- [ ] Teste em celular de verdade: Android e iPhone, Chrome e Safari, 4G
-- [ ] Runbook de incidente: o que fazer se o vídeo cair, se o chat travar, se o checkout não abrir
-- [ ] Página de plano B (card com link alternativo acionado pelo host)
+- [ ] Aviso real de compra no chat
+- [ ] Pixel Meta + CAPI com `event_id` compartilhado; GA4 + Google Ads
+- [ ] Espectadores exibidos (mín/máx, curva, mesmo número pra todos, nunca gravado)
+- [ ] Painel do host: "reais × exibido"
+- [ ] Carga: 300 espectadores simulados (k6) no chat e na liberação
+- [ ] Celular real: Android e iPhone, Chrome e Safari, 4G
+- [ ] Runbook de incidente + card de plano B
 
-**Pronto quando:** ensaio geral com mais de 100 pessoas da minha lista, live de 45 min, com pitch liberado e venda real.
+**Marco 03/10:** `quiz → checkout` com compra real de R$ 1 ligada ao pitch.
+**Marco 10/10:** ensaio geral com mais de 100 pessoas da minha lista.
+**Marco 17/10:** 🎯 **primeira live de cliente da Sylo**, com monitoramento ao vivo.
 
-## Semana 4 — Beta com cliente da Sylo
+## Fase 3 — Cobrança, admin e modo sala (20/10 – 31/10)
 
-- [ ] Escolher **um** cliente e uma live de menor risco (não pode ser o pico de um lançamento)
-- [ ] Alinhar por escrito: é beta, existe plano B, e eu estarei acompanhando ao vivo
-- [ ] Criar a conta e a sala, configurar checkout, pixel e gate
-- [ ] Ensaio com o cliente 48h antes, na mesma sala
-- [ ] Rodar a live real com monitoramento ao vivo (eu assistindo os logs)
-- [ ] Coletar: o que quebrou, o que confundiu, o que ele pediu
-- [ ] Corrigir em 48h e rodar a segunda live
+**Cobrança**
+- [ ] Escolher Stripe ou Asaas
+- [ ] Assinatura por plano, com Pix e cartão
+- [ ] Webhook atualizando `accounts.plan_id` e status
+- [ ] Limites aplicados (assentos, espectadores por sala, horas por mês)
+- [ ] Tela de plano, upgrade e faturas pro cliente
 
-**Pronto quando:** cliente da Sylo fez uma live real, vendeu pela Lyvo e quer repetir.
+**Painel admin**
+- [ ] Lista de contas com consumo contra os limites
+- [ ] Liberar e revogar módulo por conta, com prazo
+- [ ] Entrar como cliente pra dar suporte, com registro em auditoria
+- [ ] Faturamento, inadimplência e situação das integrações
+- [ ] Registro de auditoria consultável
 
-## Ritmo de trabalho
+**Modo sala**
+- [ ] Grade de câmeras, com destaque no host
+- [ ] Mão levantada, silenciar, remover, permissão de fala
+- [ ] Host libera o pitch pra todos da sala
+- [ ] Limite de participantes por plano
 
-| Dia | Foco |
-|---|---|
-| Segunda a quinta | Blocos de 2 a 3 horas de construção com Claude Code |
-| Sexta | Teste de ponta a ponta do que foi feito na semana |
-| Domingo | Revisão do plano: o que atrasou e o que sai do escopo |
+## Fase 4 — Analytics e integrações (03/11 – 14/11)
 
-Toda semana termina com **uma coisa que funciona de verdade**, não com código pela metade.
+**Analytics**
+- [ ] Sinais em lote a cada 30s
+- [ ] Agregação em blocos de 10s (pg_cron) + expurgo do bruto
+- [ ] Curva de retenção, pico, tempo médio, entradas e saídas
+- [ ] Mensagens por minuto
+- [ ] Funil por pitch: viu → respondeu → abriu checkout → comprou
+- [ ] Relatório por sala, exportável
 
-## Riscos
+**Integrações**
+- [ ] Eventos canônicos gravados em `events`
+- [ ] Entrega com reenvio (`event_deliveries`)
+- [ ] Webhook assinado por HMAC (cobre Make e Zapier na marra)
+- [ ] API pública com chave + documentação
+- [ ] App oficial de Zapier e de Make
+- [ ] ActiveCampaign e RD Station
+- [ ] Tela de integrações no painel do cliente
 
-| Risco | Impacto | Mitigação |
-|---|---|---|
-| Script de checkout não monta dentro do React | Alto | Spike na Semana 0, antes de tudo |
-| Live de cliente cai no ar | Alto (relação) | Ordem: eu → minha audiência → cliente. Plano B em toda live |
-| Limite de conexões do Supabase Realtime | Médio | Medir na Semana 3; se apertar, chat vai pro LiveKit Data |
-| Custo do LiveKit em live grande | Médio | ~US$ 165 por live de 90min com 1.000 pessoas. Medir consumo real na Semana 3 |
-| Operação da Sylo consumir o tempo | Alto | Blocos fixos na agenda; se atrasar, corta escopo, não o teste |
-| Eduzz exigir domínio validado por página | Médio | Confirmar com o suporte na Semana 0 |
+## Fase 5 — Endurecimento e lançamento (17/11 – 21/11)
+
+- [ ] Carga de 1.000 espectadores simultâneos
+- [ ] Revisão de segurança (RLS, segredos, tokens de espectador)
+- [ ] Onboarding automático (cliente cria conta e sala sozinho)
+- [ ] Domínio próprio por cliente (CNAME)
+- [ ] Central de ajuda e vídeos curtos
+- [ ] Landing de vendas + página de planos
+- [ ] Lançamento público
+
+---
 
 ## Marcos
 
 | Data | Marco |
 |---|---|
-| 2026-09-19 | Spikes concluídos, decisão técnica tomada |
-| 2026-09-26 | Live interna com chat e captura de lead |
-| 2026-10-03 | Pitch `quiz → checkout` com venda real |
-| 2026-10-10 | Ensaio geral com mais de 100 pessoas |
-| 2026-10-17 | Primeira live de cliente da Sylo |
+| 19/09 | Spikes concluídos, decisão técnica tomada |
+| 26/09 | Live interna com chat e captura de lead |
+| 03/10 | Pitch `quiz → checkout` com venda real |
+| 10/10 | Ensaio geral com mais de 100 pessoas |
+| **17/10** | **Primeira live de cliente da Sylo** |
+| 31/10 | Cobrança, painel admin e modo sala no ar |
+| 14/11 | Analytics e integrações no ar |
+| 21/11 | Produto completo e lançamento público |
 
-## Depois dos 30 dias
+## Ritmo
 
-Na ordem: cobrança (Stripe ou Asaas) → painel admin → curva de retenção → modo sala → integrações (webhook primeiro) → domínio próprio por cliente.
+| Dia | Foco |
+|---|---|
+| Segunda a quinta | Blocos de 2 a 3 horas com Claude Code |
+| Sexta | Teste de ponta a ponta da semana |
+| Domingo | Revisão: o que atrasou e o que precisa de ajuda |
+
+Toda semana termina com **uma coisa que funciona**, nunca com código pela metade.
+
+## Riscos
+
+| Risco | Impacto | Mitigação |
+|---|---|---|
+| Script de checkout não monta dentro do React | Alto | Spike na Fase 0, antes de qualquer tela |
+| Live de cliente cai no ar | Alto (relação) | Ordem eu → audiência → cliente, com plano B em toda live |
+| Escopo completo esticar o calendário | Alto | Marcos quinzenais; se atrasar duas vezes seguidas, paralelizar com agentes ou contratar |
+| Limite de conexões do Supabase Realtime | Médio | Medir na Fase 2; se apertar, chat vai pro LiveKit Data |
+| Custo do LiveKit em live grande | Médio | ~US$ 165 por live de 90min com 1.000 pessoas. Medir consumo real |
+| Operação da Sylo consumir o tempo | Alto | Blocos fixos na agenda; atraso empurra data, não corta teste |
+| Eduzz exigir domínio validado por página | Médio | Confirmar com o suporte na Fase 0 |
