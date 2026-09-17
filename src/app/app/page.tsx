@@ -29,11 +29,16 @@ export default async function AppPage() {
             liberados
           </p>
         </div>
-        <form action={sair}>
+        <div className="flex items-center gap-4">
+          <Link href="/app/equipe" className="text-sm text-blue-400 underline underline-offset-4">
+            Equipe
+          </Link>
+          <form action={sair}>
           <button className="text-sm text-neutral-400 underline underline-offset-4">
             Sair
-          </button>
-        </form>
+            </button>
+          </form>
+        </div>
       </header>
 
       <section className="mt-8">
