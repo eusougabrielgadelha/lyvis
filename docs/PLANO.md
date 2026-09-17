@@ -77,25 +77,28 @@ Estimativa por módulo, em dias de trabalho focado, já contando a aceleração 
 ## Fase 1 — Base SaaS + sala ao vivo (22/09 – 03/10)
 
 **Base multi-cliente**
-- [ ] Login (Supabase Auth) + criação de conta e convite de membros
-- [ ] Papéis: dono, admin, apresentador, moderador
-- [ ] Planos, módulos e limites; `can(accountId, key)` verificado no servidor
-- [ ] Exceção por conta (`account_features`) com prazo
-- [ ] Limite de assentos aplicado no convite
+- [x] Login (Supabase Auth) + criação de conta e convite de membros
+- [x] Papéis: dono, admin, apresentador, moderador
+- [x] Planos, módulos e limites; `can(accountId, key)` verificado no servidor
+- [x] Exceção por conta (`account_features`) com prazo
+- [x] Limite de assentos aplicado no convite
 
 **Sala ao vivo**
-- [ ] Criar sala: título, modo, horário, configurações
-- [ ] Token do LiveKit no servidor, por papel
-- [ ] Página do espectador (celular primeiro) + painel do host
+- [x] Criar sala: título, modo, horário, configurações
+- [x] Token do LiveKit no servidor, por papel
+- [x] Página do espectador (celular primeiro) + painel do host
 - [ ] Entrada por navegador e por OBS
-- [ ] Gate de inscrição configurável (assistir ou só falar no chat)
-- [ ] Identificador assinado do espectador
-- [ ] Chat em tempo real + moderação (apagar, banir, modo lento)
-- [ ] `viewer_sessions` com entrada, saída e tempo assistido
-- [ ] Leads normalizados (e-mail minúsculo, telefone E.164) + exportação CSV
-- [ ] Consentimento LGPD datado
+- [x] Gate de inscrição configurável (assistir ou só falar no chat)
+- [x] Identificador assinado do espectador
+- [x] Chat em tempo real · ⚠️ moderação (apagar, banir, modo lento) ainda não
+- [x] `viewer_sessions` com entrada · ⚠️ saída e tempo assistido ainda não
+- [x] Leads normalizados (e-mail minúsculo, telefone E.164) · ⚠️ exportação CSV ainda não
+- [x] Consentimento LGPD datado
 
 **Marco 26/09:** live interna de 20 min com 10 convidados e CSV baixado.
+
+> [!success] 2026-09-17 — vídeo validado de ponta a ponta
+> Host publica, espectador recebe e a imagem aparece na tela. Contador do host acusa o espectador real. Falta CSV, moderação do chat e OBS.
 
 ## Fase 2 — Pitch completo e rastreio (06/10 – 17/10)
 

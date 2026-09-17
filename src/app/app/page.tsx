@@ -76,6 +76,12 @@ export default async function AppPage() {
                     Apresentar
                   </Link>
                   <Link
+                    href={`/app/salas/${sala.slug}/pitch`}
+                    className="text-blue-400 underline underline-offset-4"
+                  >
+                    Pitches
+                  </Link>
+                  <Link
                     href={`/s/${sala.slug}`}
                     className="text-blue-400 underline underline-offset-4"
                   >

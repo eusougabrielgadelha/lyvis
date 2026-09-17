@@ -5,6 +5,8 @@ import { viewerIdAtual } from "@/lib/viewer";
 import { Palco } from "./palco";
 import { Chat, type Mensagem } from "./chat";
 import { Inscricao } from "./inscricao";
+import { AreaDoPitch } from "./pitch";
+import { pitchAtivo } from "./pitch-actions";
 
 export default async function SalaPage({
   params,
@@ -34,6 +36,8 @@ export default async function SalaPage({
 
   const precisaInscreverPraAssistir = sala.gate.when === "to_watch" && !inscrito;
 
+  const ativo = await pitchAtivo(slug);
+
   const { data: mensagens } = await db
     .from("chat_messages")
     .select("id, display_name, body, created_at")
@@ -54,12 +58,16 @@ export default async function SalaPage({
         <div className="grid gap-4 md:grid-cols-[1fr_320px]">
           <div className="space-y-4">
             <Palco slug={slug} />
-            <div
-              id="pitch"
-              className="rounded-xl border border-dashed border-neutral-800 p-6 text-sm text-neutral-500"
-            >
-              O pitch aparece aqui quando o apresentador liberar.
-            </div>
+            <AreaDoPitch
+              slug={slug}
+              roomId={sala.id}
+              viewerRef={anonId ?? undefined}
+              inicial={
+                ativo
+                  ? { activationId: ativo.activationId, definicao: ativo.definicao }
+                  : null
+              }
+            />
           </div>
 
           <div className="flex flex-col gap-3 md:h-[560px]">
