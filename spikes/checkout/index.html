@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lyvis — Spike 1: checkout dentro do React</title>
+<style>
+  :root { --bg:#0b0d10; --card:#151a21; --line:#242b35; --txt:#e8edf3; --dim:#8c98a7; --ok:#22c55e; --warn:#f59e0b; --err:#ef4444; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt); font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  .wrap { max-width:760px; margin:0 auto; padding:16px; }
+  .stage { background:#000; border-radius:12px; overflow:hidden; aspect-ratio:16/9; }
+  .stage video { width:100%; height:100%; object-fit:cover; display:block; }
+  .bar { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; }
+  button { background:#1f2937; color:var(--txt); border:1px solid var(--line); border-radius:8px; padding:9px 14px; font-size:14px; cursor:pointer; }
+  button.primary { background:#2563eb; border-color:#2563eb; }
+  button:disabled { opacity:.4; cursor:not-allowed; }
+  .pitch { min-height:120px; background:var(--card); border:1px dashed var(--line); border-radius:12px; padding:16px; }
+  .pitch h2 { margin:0 0 8px; font-size:20px; }
+  .muted { color:var(--dim); font-size:13px; }
+  .log { margin-top:16px; background:#0e1319; border:1px solid var(--line); border-radius:12px; padding:12px; font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace; max-height:260px; overflow:auto; }
+  .log div { border-bottom:1px solid #1b2028; padding:2px 0; }
+  .ok{color:var(--ok)} .warn{color:var(--warn)} .err{color:var(--err)}
+  .quiz button { display:block; width:100%; text-align:left; margin:6px 0; }
+  .pip { position:fixed; right:12px; bottom:12px; width:180px; border-radius:10px; overflow:hidden; border:1px solid var(--line); z-index:9999; }
+  .pip video { width:100%; display:block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="stage">
+    <video id="stage-video" src="https://www.w3schools.com/html/mov_bbb.mp4" autoplay muted loop playsinline></video>
+  </div>
+
+  <div class="bar">
+    <button class="primary" id="btn-activate">▶ Host libera pitch</button>
+    <button id="btn-end">■ Encerrar pitch</button>
+    <button id="btn-cycle">↻ Liberar → encerrar → liberar</button>
+    <button id="btn-clear">limpar log</button>
+  </div>
+
+  <div id="root"></div>
+
+  <div class="log" id="log"></div>
+  <p class="muted">
+    Spike 1 — valida se o script de checkout monta quando o bloco aparece <b>depois</b> do carregamento da página,
+    sobrevive a desmontar/remontar, e se o vídeo continua tocando.
+  </p>
+</div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script>
+// ------------------------------------------------------------------
+// log
+// ------------------------------------------------------------------
+const logEl = document.getElementById('log');
+function log(msg, cls) {
+  const d = document.createElement('div');
+  d.className = cls || '';
+  d.textContent = new Date().toLocaleTimeString('pt-BR') + '  ' + msg;
+  logEl.prepend(d);
+  console.log('[spike]', msg);
+}
+
+// ------------------------------------------------------------------
+// Adaptador: Hotmart (widget / pop-up)
+// O widget escaneia o DOM procurando âncoras .hotmart-fb. A pergunta do
+// spike: ele enxerga uma âncora inserida DEPOIS do script ter carregado?
+// ------------------------------------------------------------------
+const HOTMART_PRODUCT = 'K69209007X';
+let hotmartScriptLoaded = false;
+
+function loadHotmartOnce() {
+  return new Promise((resolve, reject) => {
+    if (hotmartScriptLoaded) { log('hotmart: script já estava carregado (reuso)'); return resolve('cached'); }
+    const css = document.createElement('link');
+    css.rel = 'stylesheet'; css.type = 'text/css';
+    css.href = 'https://static.hotmart.com/css/hotmart-fb.min.css';
+    document.head.appendChild(css);
+
+    const s = document.createElement('script');
+    s.src = 'https://static.hotmart.com/checkout/widget.min.js';
+    s.onload = () => { hotmartScriptLoaded = true; log('hotmart: widget.min.js carregado', 'ok'); resolve('loaded'); };
+    s.onerror = (e) => { log('hotmart: FALHA ao carregar widget.min.js', 'err'); reject(e); };
+    document.head.appendChild(s);
+  });
+}
+
+function inspectHotmartGlobals() {
+  const globals = Object.keys(window).filter(k => /hotmart|checkout/i.test(k));
+  log('globais expostas: ' + (globals.length ? globals.join(', ') : '(nenhuma)'), globals.length ? 'ok' : 'warn');
+  return globals;
+}
+
+// ------------------------------------------------------------------
+// Blocos
+// ------------------------------------------------------------------
+const e = React.createElement;
+
+function TextBlock({ html }) {
+  return e('div', { dangerouslySetInnerHTML: { __html: html } });
+}
+
+function QuizBlock({ question, options, onAnswer }) {
+  return e('div', { className: 'quiz' },
+    e('h2', null, question),
+    options.map(o => e('button', { key: o, onClick: () => { log('quiz respondido: ' + o); onAnswer(o); } }, o))
+  );
+}
+
+// CORREÇÃO (validada em 2026-09-17): o widget roda
+// jQuery('.hotmart-fb').fancybox(...) UMA vez, ligando só ao que existe
+// naquele instante. Bloco montado depois => âncora sem handler.
+// Solução: chamar loadFancyBoxCheckout() a cada montagem.
+function rebindHotmart(tries = 0) {
+  if (typeof window.loadFancyBoxCheckout === 'function' && window.jQuery) {
+    window.loadFancyBoxCheckout();
+    log('checkout: widget re-vinculado à âncora', 'ok');
+    return;
+  }
+  if (tries > 40) { log('checkout: timeout esperando o widget', 'err'); return; }
+  setTimeout(() => rebindHotmart(tries + 1), 100);
+}
+
+function HotmartCheckoutBlock({ product }) {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    let alive = true;
+    log('checkout: bloco montado no React');
+    loadHotmartOnce().then((how) => {
+      if (!alive) return;
+      inspectHotmartGlobals();
+      log('checkout: âncora .hotmart-fb já está no DOM? ' + !!document.querySelector('a.hotmart-fb'));
+      if (how === 'cached') log('checkout: script reusado — re-vinculando', 'warn');
+      rebindHotmart();
+    });
+    return () => { alive = false; log('checkout: bloco desmontado'); };
+  }, [product]);
+
+  return e('div', { ref },
+    e('p', { className: 'muted' }, 'Bloco checkout · provider: hotmart · modo: pop-up'),
+    e('a', {
+      className: 'hotmart-fb hotmart__button-checkout',
+      href: 'https://pay.hotmart.com/' + product + '?checkoutMode=2',
+      onClick: (ev) => { ev.preventDefault(); log('clique na âncora do widget'); }
+    }, e('img', { src: 'https://static.hotmart.com/img/btn-buy-green.png', alt: 'Comprar' }))
+  );
+}
+
+// ------------------------------------------------------------------
+// Motor do pitch (etapas + regra de próximo)
+// ------------------------------------------------------------------
+const PITCH = {
+  start: 's1',
+  steps: {
+    s1: {
+      blocks: [
+        { type: 'text', props: { html: '<h2>Oferta liberada</h2><p class="muted">Você já vende online?</p>' } },
+        { type: 'quiz', id: 'q1', props: { question: 'Você já vende online?', options: ['Sim, já vendo', 'Ainda não'] } }
+      ],
+      next: [{ when: { block: 'q1', equals: 'Sim, já vendo' }, goto: 's_pro' }, { goto: 's_basic' }]
+    },
+    s_pro:   { blocks: [{ type: 'text', props: { html: '<h2>Plano Pro</h2>' } }, { type: 'checkout', props: { provider: 'hotmart', product: HOTMART_PRODUCT } }] },
+    s_basic: { blocks: [{ type: 'text', props: { html: '<h2>Plano Básico</h2>' } }, { type: 'checkout', props: { provider: 'hotmart', product: HOTMART_PRODUCT } }] }
+  }
+};
+
+function Pitch({ active }) {
+  const [stepId, setStepId] = React.useState(PITCH.start);
+  React.useEffect(() => { if (active) setStepId(PITCH.start); }, [active]);
+  if (!active) return e('div', { className: 'pitch' }, e('span', { className: 'muted' }, 'Nenhum pitch ativo. O host ainda não liberou.'));
+
+  const step = PITCH.steps[stepId];
+  const advance = (blockId, answer) => {
+    const rule = (step.next || []).find(r => !r.when || (r.when.block === blockId && r.when.equals === answer));
+    if (rule) { log('avançando para a etapa: ' + rule.goto); setStepId(rule.goto); }
+  };
+
+  return e('div', { className: 'pitch' }, step.blocks.map((b, i) => {
+    if (b.type === 'text')     return e(TextBlock, { key: i, ...b.props });
+    if (b.type === 'quiz')     return e(QuizBlock, { key: i, ...b.props, onAnswer: (a) => advance(b.id, a) });
+    if (b.type === 'checkout') return e(HotmartCheckoutBlock, { key: i, product: b.props.product });
+    return null;
+  }));
+}
+
+function App() {
+  const [active, setActive] = React.useState(false);
+  window.__setPitch = setActive;
+  return e(Pitch, { active });
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(e(App));
+
+// ------------------------------------------------------------------
+// Controles do "host"
+// ------------------------------------------------------------------
+const video = document.getElementById('stage-video');
+document.getElementById('btn-activate').onclick = () => { log('HOST: liberou o pitch', 'ok'); window.__setPitch(true); };
+document.getElementById('btn-end').onclick      = () => { log('HOST: encerrou o pitch'); window.__setPitch(false); };
+document.getElementById('btn-clear').onclick    = () => { logEl.innerHTML = ''; };
+document.getElementById('btn-cycle').onclick    = () => {
+  log('CICLO: liberar → encerrar → liberar (testa remontagem)', 'warn');
+  window.__setPitch(true);
+  setTimeout(() => window.__setPitch(false), 800);
+  setTimeout(() => window.__setPitch(true), 1600);
+};
+
+setInterval(() => {
+  window.__videoPlaying = !video.paused && !video.ended;
+}, 500);
+log('spike carregado. Clique em "Host libera pitch".');
+</script>
+</body>
+</html>

@@ -36,9 +36,12 @@ No modo `window`, a live continua num player flutuante (Picture-in-Picture) e o 
 interface CheckoutAdapter {
   mode: "inline" | "modal" | "window";
   mount(el: HTMLElement, props: CheckoutProps, ctx: Ctx): Promise<void>;
+  rebind(): void;   // exigido pelo widget da Hotmart (Spike 1)
   unmount(): void;
 }
 ```
+
+**Spike 1 (2026-09-17)** validou a Hotmart de ponta a ponta: pop-up abre com o checkout real, o vídeo continua tocando por trás e o ciclo montar/desmontar/montar funciona **desde que** `loadFancyBoxCheckout()` seja chamado de novo a cada montagem. No celular o widget navega pra fora, então Hotmart mobile usa o modo janela. Detalhes em `spikes/checkout/RESULTADO.md`.
 
 O adaptador leva sempre `room_id`, respostas do quiz e UTMs pro checkout — é o que liga a venda do webhook à live e ao pitch.
 

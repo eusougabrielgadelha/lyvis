@@ -80,3 +80,9 @@ Nos dois, o host libera o **pitch**: blocos que aparecem abaixo do vídeo (texto
 | Xgrow | janela separada | Bloqueia iframe (`X-Frame-Options`) |
 
 Os scripts foram feitos pra página estática: precisam ser carregados e iniciados no momento em que o host libera o bloco.
+
+**Validado no Spike 1 (2026-09-17, ver `spikes/checkout/RESULTADO.md`):**
+- O widget da Hotmart liga o clique à âncora **uma vez só**, quando carrega. Bloco remontado = botão morto. O adaptador precisa de `rebind()` chamando `loadFancyBoxCheckout()` a cada montagem.
+- No celular o widget não abre pop-up: navega pra fora. Hotmart no celular vai pro modo janela + player flutuante, igual Kiwify e Xgrow.
+- O pop-up **não** interrompe o vídeo no desktop.
+- O widget injeta jQuery e fancybox na página — avaliar isolar o bloco num iframe do mesmo domínio.
