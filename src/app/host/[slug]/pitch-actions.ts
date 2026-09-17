@@ -39,6 +39,12 @@ export async function liberarPitch(
 
   if (!pitch) return { erro: "Pitch não encontrado." };
 
+  // sala fora do ar: o broadcast mostraria a oferta, mas quem recarregasse
+  // não veria nada. Melhor recusar com motivo claro.
+  if (sala.status !== "live") {
+    return { erro: "Entre no ar antes de liberar o pitch." };
+  }
+
   const definicao = pitchSchema.safeParse(pitch.definition);
   if (!definicao.success) return { erro: "A definição do pitch está inválida." };
 

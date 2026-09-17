@@ -6,6 +6,7 @@ import { currentAccount } from "@/lib/accounts";
 import { can } from "@/lib/features";
 import { criarTokenLiveKit, nomeSalaLiveKit } from "@/lib/livekit";
 import { salaPorSlug } from "@/lib/rooms";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 /** Garante que o usuário logado é membro da conta dona da sala. */
 async function salaDoHost(slug: string) {
@@ -50,6 +51,23 @@ export async function mudarStatus(slug: string, status: "live" | "ended") {
       ended_at: status === "ended" ? new Date().toISOString() : null,
     })
     .eq("id", sala.id);
+
+  if (status === "ended") {
+    // encerrar a live encerra o pitch: ativação aberta esquecida faria a
+    // oferta aparecer sozinha pra quem entrasse depois
+    const db = createAdminClient();
+    await db
+      .from("pitch_activations")
+      .update({ ended_at: new Date().toISOString() })
+      .eq("room_id", sala.id)
+      .is("ended_at", null);
+
+    await db.channel(`sala:${sala.id}`).send({
+      type: "broadcast",
+      event: "pitch",
+      payload: { acao: "encerrar" },
+    });
+  }
 
   // NÃO revalidar /host aqui: o refresh remonta o LiveKitRoom e derruba a
   // transmissão no meio. O painel atualiza o status no próprio estado.
