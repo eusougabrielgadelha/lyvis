@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   LiveKitRoom,
+  useRoomContext,
   useLocalParticipant,
   useParticipants,
   useConnectionState,
@@ -31,6 +32,14 @@ function Controles({
 
   const [camera, setCamera] = useState(false);
   const [mic, setMic] = useState(false);
+
+  // só em dev: expõe a sala pra inspecionar e publicar faixa de teste
+  const room = useRoomContext();
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "production") {
+      (window as unknown as { __lyvisRoom?: unknown }).__lyvisRoom = room;
+    }
+  }, [room]);
   const espectadores = Math.max(participantes.length - 1, 0);
 
   async function alternarCamera() {
