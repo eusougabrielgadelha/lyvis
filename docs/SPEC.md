@@ -1,4 +1,4 @@
-# Lyvo — Especificação
+# Lyvis — Especificação
 
 > Versão 0.1 · 2026-09-17 · consolidada a partir da sessão de concepção com o CEO.
 
@@ -6,7 +6,7 @@
 
 Na hora do pitch de uma live, o apresentador manda o link no chat e a pessoa **sai da transmissão** pra comprar. Perde-se a energia do momento, o áudio, a prova social e boa parte da conversão.
 
-A Lyvo mantém tudo na mesma tela: o pitch aparece **abaixo do vídeo** e o checkout acontece ali.
+A Lyvis mantém tudo na mesma tela: o pitch aparece **abaixo do vídeo** e o checkout acontece ali.
 
 ## 2. Pesquisa de mercado (2026-09-17)
 
@@ -17,13 +17,13 @@ A Lyvo mantém tudo na mesma tela: o pitch aparece **abaixo do vídeo** e o chec
 | Live commerce (Brasil) | StreamShop, Mimo, Stream Store, Alive | Feitas pra e-commerce físico |
 | Demio | — | Sem checkout no webinar |
 
-**Posição da Lyvo:** live **e** sala estilo Zoom + pitch modular + checkout das plataformas brasileiras de infoproduto. Não foi encontrado concorrente com as três coisas.
+**Posição da Lyvis:** live **e** sala estilo Zoom + pitch modular + checkout das plataformas brasileiras de infoproduto. Não foi encontrado concorrente com as três coisas.
 
 ## 3. Checkout das plataformas
 
 Verificado nos cabeçalhos HTTP e na documentação oficial em 2026-09-17:
 
-| Plataforma | Script oficial | Como aparece | Modo na Lyvo |
+| Plataforma | Script oficial | Como aparece | Modo na Lyvis |
 |---|---|---|---|
 | **Eduzz** | ✅ Checkout Elements | Inline na página | `inline` |
 | **Hotmart** | ✅ Widget de Checkout | Pop-up sobre a página | `modal` |
@@ -102,7 +102,7 @@ export const blockRegistry = {
 ## 5. Hierarquia SaaS
 
 ```
-PLATAFORMA (admin Lyvo)
+PLATAFORMA (admin Lyvis)
    └── CONTA (cliente)  ── plano, limites, módulos
          ├── MEMBROS (assentos): owner | admin | host | moderator
          ├── SALAS (live | meeting) → pitches
@@ -145,7 +145,7 @@ Espectador recebe identificador assinado no navegador. Anônimo assiste; ao pree
 
 **Exportação CSV:** nome, e-mail, telefone, inscrito em, entrou, tempo assistido, % assistido, mensagens no chat, respondeu quiz, abriu checkout, comprou.
 
-**LGPD:** consentimento datado, política de privacidade, exportação e exclusão por titular. Cliente = controlador; Lyvo = operadora.
+**LGPD:** consentimento datado, política de privacidade, exportação e exclusão por titular. Cliente = controlador; Lyvis = operadora.
 
 ## 8. Rastreamento (pixels)
 
@@ -236,7 +236,7 @@ Assinatura com assentos e limites não cabe em Hotmart/Kiwify. Opções: **Strip
 
 | Data | Decisão | Razão |
 |---|---|---|
-| 2026-09-17 | Nome **Lyvo** | `lyvo.com.br` livre; palavra inventada = marca registrável no INPI (GoLive e LivePlay são descritivos) |
+| 2026-09-17 | Nome **Lyvis** | Palavra inventada = marca registrável no INPI (GoLive e LivePlay seriam descritivos). O nome anterior, Lyvo, caiu porque o domínio estava tomado em `.com.br`, `.com`, `.io`, `.app` e `.live` |
 | 2026-09-17 | TypeScript, não PHP | Vídeo, blocos, checkout e tempo real rodam no navegador; PHP duplicaria o schema dos blocos |
 | 2026-09-17 | LiveKit | Mesmo SDK cobre live e reunião, ~250ms de latência, aceita OBS via RTMP, grava replay |
 | 2026-09-17 | Supabase | Já em uso na operação: Postgres, Auth, Realtime e Edge Functions num lugar só |
@@ -244,9 +244,9 @@ Assinatura com assentos e limites não cabe em Hotmart/Kiwify. Opções: **Strip
 
 ## 15. Pendências
 
-- [ ] Registrar `lyvo.com.br`
+- [x] Registrar `lyvis.com.br` (2026-09-17)
 - [ ] Busca no INPI (classe 42) por marcas parecidas
-- [ ] Conferir `@lyvo` no Instagram e YouTube
+- [ ] Conferir `@lyvis` no Instagram e YouTube
 - [ ] Teste prático: página com vídeo + scripts Eduzz e Hotmart carregados na liberação do pitch
 - [ ] Perguntar a Kiwify e Xgrow sobre checkout incorporado pra parceiros
 - [ ] Confirmar limites de conexões simultâneas do Supabase Realtime no plano atual

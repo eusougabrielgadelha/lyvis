@@ -1,4 +1,4 @@
--- Lyvo — initial schema
+-- Lyvis — initial schema
 -- Created: 2026-09-17
 -- Rollback: see 20260917000001_init_down.sql
 

@@ -1,11 +1,11 @@
-# Lyvo
+# Lyvis
 
 Plataforma SaaS de lives e salas de vídeo com **pitch modular** — o apresentador libera texto, quiz, botão ou checkout logo abaixo do vídeo, sem a pessoa sair da transmissão.
 
 - **Dono:** Gabriel Gadelha
 - **Início:** 2026-09-17
 - **Status:** especificação / pré-MVP
-- **Domínio:** `lyvo.com.br` (livre em 2026-09-17, ainda não registrado)
+- **Domínio:** `lyvis.com.br` (registrado em 2026-09-17)
 - **Spec completa:** `docs/SPEC.md`
 
 ## O que é
@@ -48,7 +48,7 @@ Nos dois, o host libera o **pitch**: blocos que aparecem abaixo do vídeo (texto
 4. **Cliente informa só IDs de pixel**, nunca script solto. Script de terceiro na página é buraco de segurança.
 5. **Purchase sai pela CAPI**, a partir do webhook, com `event_id` igual ao do navegador pra não duplicar.
 6. **Lead é por conta, não por sala.** Normalizar e-mail (minúsculas) e telefone (E.164) antes de salvar.
-7. **LGPD:** gravar data e texto do consentimento. O cliente é controlador, a Lyvo é operadora.
+7. **LGPD:** gravar data e texto do consentimento. O cliente é controlador, a Lyvis é operadora.
 8. **Segredos** (token da CAPI, API secret do GA4) ficam criptografados e nunca vão pro navegador.
 9. **Pitch é baixado na entrada da sala**, não no momento da liberação. Milhares de requisições no mesmo segundo derrubam o banco.
 10. **Todo bloco novo declara `feature`** no registro — já nasce vendável por plano.

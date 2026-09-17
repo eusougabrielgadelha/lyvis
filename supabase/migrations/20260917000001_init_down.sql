@@ -1,4 +1,4 @@
--- Lyvo — rollback do schema inicial
+-- Lyvis — rollback do schema inicial
 -- Reverte 20260917000001_init.sql
 
 drop policy if exists chat_read          on chat_messages;

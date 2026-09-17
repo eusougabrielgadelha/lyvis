@@ -1,4 +1,4 @@
-# Lyvo — Plano de Ação (escopo completo)
+# Lyvis — Plano de Ação (escopo completo)
 
 > Criado em 2026-09-17 · Revisado em 2026-09-17 (escopo completo, nada cortado)
 > Execução: Gabriel + Claude Code · Primeira live de cliente: **2026-10-17** · Produto completo: **2026-11-21**
@@ -52,9 +52,9 @@ Estimativa por módulo, em dias de trabalho focado, já contando a aceleração 
 ## Fase 0 — Fundações e prova de risco (18–19/09)
 
 **Marca e contas**
-- [ ] Registrar `lyvo.com.br` no Registro.br
+- [x] Registrar `lyvis.com.br` no Registro.br (2026-09-17)
 - [ ] Busca no INPI, classe 42
-- [ ] Garantir `@lyvo` no Instagram e YouTube
+- [ ] Garantir `@lyvis` no Instagram e YouTube
 - [ ] Projeto no Supabase + migrations aplicadas + advisors conferidos
 - [ ] Projeto no LiveKit Cloud (Ship) com as chaves
 - [ ] Scaffold Next.js + deploy na Vercel
