@@ -34,15 +34,6 @@ function carregarScript(src: string, id: string) {
   });
 }
 
-function carregarCss(href: string, id: string) {
-  if (document.getElementById(id)) return;
-  const l = document.createElement("link");
-  l.id = id;
-  l.rel = "stylesheet";
-  l.href = href;
-  document.head.appendChild(l);
-}
-
 /** Parâmetros que ligam a venda à live, ao pitch e às respostas do quiz. */
 export function paramsDeOrigem(ctx: ContextoCheckout) {
   const p = new URLSearchParams();
@@ -53,48 +44,38 @@ export function paramsDeOrigem(ctx: ContextoCheckout) {
 }
 
 /**
- * Hotmart — pop-up pelo widget.
- * O widget roda jQuery('.hotmart-fb').fancybox() uma vez só, no load. Bloco
- * montado depois fica com botão morto; daí o revincular().
+ * Hotmart — checkout EMBUTIDO na página, abaixo do vídeo.
+ *
+ * O widget oficial abre pop-up e cobre o vídeo, que é exatamente o que a
+ * Lyvis existe pra evitar. A pop-up do widget é um iframe de
+ * pay.hotmart.com/{produto}?checkoutMode=2 — e esse domínio não manda
+ * X-Frame-Options nem frame-ancestors (verificado em 2026-09-17), então
+ * montamos o mesmo iframe direto no bloco.
  */
 export function adaptadorHotmart(): Adaptador {
+  let frame: HTMLIFrameElement | null = null;
+
   return {
-    modo: "modal",
+    modo: "inline",
     async montar(el, referencia, ctx) {
-      carregarCss("https://static.hotmart.com/css/hotmart-fb.min.css", "hotmart-css");
       const url = new URL(`https://pay.hotmart.com/${referencia}`);
       url.searchParams.set("checkoutMode", "2");
       paramsDeOrigem(ctx).forEach((v, k) => url.searchParams.set(k, v));
 
-      const a = document.createElement("a");
-      a.className = "hotmart-fb hotmart__button-checkout";
-      a.href = url.toString();
-      a.onclick = () => false;
-      a.textContent = el.dataset.rotulo || "Comprar agora";
-      a.style.cssText =
-        "display:inline-block;background:#16a34a;color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;cursor:pointer";
-      el.replaceChildren(a);
-
-      await carregarScript(
-        "https://static.hotmart.com/checkout/widget.min.js",
-        "hotmart-widget",
-      );
-      this.revincular();
+      frame = document.createElement("iframe");
+      frame.src = url.toString();
+      frame.title = "Checkout";
+      frame.allow = "payment *; clipboard-write";
+      frame.referrerPolicy = "origin";
+      frame.style.cssText =
+        "width:100%;height:720px;border:0;border-radius:12px;background:#fff;display:block";
+      el.replaceChildren(frame);
     },
-    revincular() {
-      const w = window as unknown as { loadFancyBoxCheckout?: () => void; jQuery?: unknown };
-      let tentativas = 0;
-      const tentar = () => {
-        if (typeof w.loadFancyBoxCheckout === "function" && w.jQuery) {
-          w.loadFancyBoxCheckout();
-          return;
-        }
-        if (tentativas++ > 40) return;
-        setTimeout(tentar, 100);
-      };
-      tentar();
+    revincular() {},
+    desmontar() {
+      frame?.remove();
+      frame = null;
     },
-    desmontar() {},
   };
 }
 
@@ -138,8 +119,9 @@ export function adaptadorEduzz(): Adaptador {
 }
 
 /**
- * Kiwify e Xgrow — bloqueiam iframe (frame-ancestors / X-Frame-Options).
- * Abre em janela separada e a live continua num player flutuante.
+ * Kiwify e Xgrow — únicos que NÃO podem ficar embutidos: bloqueiam iframe
+ * (frame-ancestors / X-Frame-Options). Abre em janela e a live continua
+ * num player flutuante (Picture-in-Picture).
  */
 export function adaptadorJanela(provedor: "kiwify" | "xgrow"): Adaptador {
   return {

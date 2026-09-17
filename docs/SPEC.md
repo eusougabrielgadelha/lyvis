@@ -26,11 +26,13 @@ Verificado nos cabeçalhos HTTP e na documentação oficial em 2026-09-17:
 | Plataforma | Script oficial | Como aparece | Modo na Lyvis |
 |---|---|---|---|
 | **Eduzz** | ✅ Checkout Elements | Inline na página | `inline` |
-| **Hotmart** | ✅ Widget de Checkout | Pop-up sobre a página | `modal` |
+| **Hotmart** | ✅ iframe próprio | Embutido na página | `inline` |
 | **Kiwify** | ❌ | `frame-ancestors` só domínios próprios | `window` |
 | **Xgrow** | ❌ | `X-Frame-Options: SAMEORIGIN` | `window` |
 
-No modo `window`, a live continua num player flutuante (Picture-in-Picture) e o chat segue visível.
+**Regra de ouro da experiência:** o checkout, o quiz e o texto aparecem **embaixo do vídeo, na mesma tela**. Nada de pop-up ou nova aba enquanto existir alternativa — a pessoa tem que concluir a etapa sem parar de ver o apresentador. O vídeo fica fixo no topo enquanto o pitch rola.
+
+Só Kiwify e Xgrow escapam, porque bloqueiam iframe: abrem em janela com a live num player flutuante (Picture-in-Picture).
 
 ```ts
 interface CheckoutAdapter {

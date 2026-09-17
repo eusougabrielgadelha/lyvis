@@ -57,7 +57,11 @@ export default async function SalaPage({
       ) : (
         <div className="grid gap-4 md:grid-cols-[1fr_320px]">
           <div className="space-y-4">
-            <Palco slug={slug} roomId={sala.id} statusInicial={sala.status} />
+            {/* o vídeo acompanha a rolagem: a pessoa responde quiz e preenche
+                o checkout sem perder o apresentador de vista */}
+            <div className="sticky top-0 z-20 -mx-4 bg-neutral-950 px-4 py-2 md:mx-0 md:px-0">
+              <Palco slug={slug} roomId={sala.id} statusInicial={sala.status} />
+            </div>
             <AreaDoPitch
               slug={slug}
               roomId={sala.id}

@@ -74,18 +74,18 @@ Nos dois, o host libera o **pitch**: blocos que aparecem abaixo do vídeo (texto
 
 | Plataforma | Como | Observação |
 |---|---|---|
-| Eduzz | inline (Checkout Elements) | Melhor experiência. Mínimo de 700px no desktop |
-| Hotmart | pop-up (Widget) | No celular, manter vídeo em player flutuante |
+| Eduzz | inline (Checkout Elements) | Mínimo de 700px no desktop |
+| Hotmart | **inline (iframe próprio)** | `pay.hotmart.com` não bloqueia iframe. Não usamos o widget: pop-up cobre o vídeo |
 | Kiwify | janela separada | Bloqueia iframe (`frame-ancestors`) |
 | Xgrow | janela separada | Bloqueia iframe (`X-Frame-Options`) |
 
 Os scripts foram feitos pra página estática: precisam ser carregados e iniciados no momento em que o host libera o bloco.
 
 **Validado no Spike 1 (2026-09-17, ver `spikes/checkout/RESULTADO.md`):**
-- O widget da Hotmart liga o clique à âncora **uma vez só**, quando carrega. Bloco remontado = botão morto. O adaptador precisa de `rebind()` chamando `loadFancyBoxCheckout()` a cada montagem.
-- No celular o widget não abre pop-up: navega pra fora. Hotmart no celular vai pro modo janela + player flutuante, igual Kiwify e Xgrow.
-- O pop-up **não** interrompe o vídeo no desktop.
-- O widget injeta jQuery e fancybox na página — avaliar isolar o bloco num iframe do mesmo domínio.
+- `pay.hotmart.com/{produto}?checkoutMode=2` **aceita iframe** (sem X-Frame-Options nem frame-ancestors). A pop-up do widget era um iframe dessa mesma URL, então montamos o iframe direto no bloco.
+- **Nada de pop-up ou nova aba quando dá pra embutir.** O produto existe pra pessoa não perder o vídeo de vista.
+- Kiwify e Xgrow são a exceção: bloqueiam iframe, então vão pra janela + Picture-in-Picture.
+- O vídeo fica fixo no topo (`sticky`) enquanto o pitch rola.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
