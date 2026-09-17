@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { currentAccount } from "@/lib/accounts";
 import { featuresOf } from "@/lib/features";
 import { sair } from "@/app/login/actions";
+import Link from "next/link";
 import { NovaSala } from "./nova-sala";
 
 export default async function AppPage() {
@@ -62,9 +63,20 @@ export default async function AppPage() {
                     {sala.status} · /{sala.slug}
                   </p>
                 </div>
-                <span className="text-xs text-neutral-600">
-                  {new Date(sala.created_at).toLocaleDateString("pt-BR")}
-                </span>
+                <div className="flex items-center gap-3 text-xs">
+                  <Link
+                    href={`/host/${sala.slug}`}
+                    className="rounded-lg bg-neutral-800 px-3 py-1.5 font-medium text-neutral-100"
+                  >
+                    Apresentar
+                  </Link>
+                  <Link
+                    href={`/s/${sala.slug}`}
+                    className="text-blue-400 underline underline-offset-4"
+                  >
+                    Abrir sala
+                  </Link>
+                </div>
               </li>
             ))}
           </ul>
