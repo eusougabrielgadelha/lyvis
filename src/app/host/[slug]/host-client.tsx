@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   LiveKitRoom,
   useLocalParticipant,
@@ -12,7 +12,15 @@ import {
 import { ConnectionState, Track } from "livekit-client";
 import { mudarStatus, tokenHost } from "./actions";
 
-function Controles({ slug, status }: { slug: string; status: string }) {
+function Controles({
+  slug,
+  status,
+  aoMudarStatus,
+}: {
+  slug: string;
+  status: string;
+  aoMudarStatus: (s: "live" | "ended") => void;
+}) {
   const { localParticipant } = useLocalParticipant();
   const participantes = useParticipants();
   const estado = useConnectionState();
@@ -65,14 +73,20 @@ function Controles({ slug, status }: { slug: string; status: string }) {
 
         {status !== "live" ? (
           <button
-            onClick={() => mudarStatus(slug, "live")}
+            onClick={async () => {
+              aoMudarStatus("live");
+              await mudarStatus(slug, "live");
+            }}
             className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium"
           >
             Entrar no ar
           </button>
         ) : (
           <button
-            onClick={() => mudarStatus(slug, "ended")}
+            onClick={async () => {
+              aoMudarStatus("ended");
+              await mudarStatus(slug, "ended");
+            }}
             className="rounded-lg border border-neutral-700 px-4 py-2 text-sm"
           >
             Encerrar transmissão
@@ -97,15 +111,23 @@ function Controles({ slug, status }: { slug: string; status: string }) {
 
 export function HostClient({
   slug,
-  status,
+  status: statusInicial,
 }: {
   slug: string;
   status: string;
 }) {
   const [cred, setCred] = useState<{ url: string; token: string } | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  // status vive no cliente: mudar no servidor não pode remontar o vídeo
+  const [status, setStatus] = useState(statusInicial);
+  const pediuToken = useRef(false);
 
   useEffect(() => {
+    // em dev o React roda o efeito duas vezes; sem esta trava a sala
+    // recebia dois connect e aparecia "already connected to room"
+    if (pediuToken.current) return;
+    pediuToken.current = true;
+
     tokenHost(slug)
       .then(setCred)
       .catch((e) => setErro(e.message ?? "Falha ao abrir a sala."));
@@ -116,7 +138,7 @@ export function HostClient({
 
   return (
     <LiveKitRoom serverUrl={cred.url} token={cred.token} connect audio={false} video={false}>
-      <Controles slug={slug} status={status} />
+      <Controles slug={slug} status={status} aoMudarStatus={setStatus} />
     </LiveKitRoom>
   );
 }

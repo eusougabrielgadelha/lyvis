@@ -51,7 +51,9 @@ export async function mudarStatus(slug: string, status: "live" | "ended") {
     })
     .eq("id", sala.id);
 
-  revalidatePath(`/host/${slug}`);
+  // NÃO revalidar /host aqui: o refresh remonta o LiveKitRoom e derruba a
+  // transmissão no meio. O painel atualiza o status no próprio estado.
   revalidatePath(`/s/${slug}`);
-  return { ok: true };
+  revalidatePath("/app");
+  return { ok: true, status };
 }

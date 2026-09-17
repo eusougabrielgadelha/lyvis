@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   LiveKitRoom,
   RoomAudioRenderer,
@@ -40,7 +40,12 @@ export function Palco({ slug }: { slug: string }) {
   const [cred, setCred] = useState<{ url: string; token: string } | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
+  const pediuToken = useRef(false);
+
   useEffect(() => {
+    if (pediuToken.current) return;   // evita conexão dupla no efeito repetido
+    pediuToken.current = true;
+
     tokenEspectador(slug)
       .then(setCred)
       .catch(() => setErro("Não consegui entrar na transmissão."));
