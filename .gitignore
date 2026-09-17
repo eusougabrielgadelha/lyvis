@@ -1,0 +1,30 @@
+# deps
+node_modules/
+.pnp/
+.pnp.js
+
+# build
+.next/
+out/
+dist/
+build/
+
+# env & segredos
+.env
+.env.*
+!.env.example
+*.pem
+
+# supabase local
+supabase/.branches/
+supabase/.temp/
+
+# sistema
+.DS_Store
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# editores
+.vscode/
+.idea/
