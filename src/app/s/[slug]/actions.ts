@@ -111,6 +111,10 @@ export async function tokenEspectador(slug: string) {
   const sala = await salaPorSlug(slug);
   if (!sala) throw new Error("Sala não encontrada");
 
+  // sem isso, bastava forjar o cliente pra assistir antes de o host entrar
+  // no ar (ou depois de encerrar). O token é a fronteira de verdade.
+  if (sala.status !== "live") throw new Error("A transmissão não está no ar");
+
   const anonId = await garantirViewerId();
   const db = createAdminClient();
 

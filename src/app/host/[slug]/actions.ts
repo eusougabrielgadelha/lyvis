@@ -52,10 +52,18 @@ export async function mudarStatus(slug: string, status: "live" | "ended") {
     })
     .eq("id", sala.id);
 
+  const db = createAdminClient();
+
+  // avisa quem está na sala: é esse evento que faz o vídeo aparecer e sumir
+  await db.channel(`sala:${sala.id}`).send({
+    type: "broadcast",
+    event: "room",
+    payload: { status },
+  });
+
   if (status === "ended") {
     // encerrar a live encerra o pitch: ativação aberta esquecida faria a
     // oferta aparecer sozinha pra quem entrasse depois
-    const db = createAdminClient();
     await db
       .from("pitch_activations")
       .update({ ended_at: new Date().toISOString() })

@@ -57,7 +57,7 @@ export default async function SalaPage({
       ) : (
         <div className="grid gap-4 md:grid-cols-[1fr_320px]">
           <div className="space-y-4">
-            <Palco slug={slug} />
+            <Palco slug={slug} roomId={sala.id} statusInicial={sala.status} />
             <AreaDoPitch
               slug={slug}
               roomId={sala.id}
