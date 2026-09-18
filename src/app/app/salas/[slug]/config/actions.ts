@@ -25,6 +25,18 @@ export async function salvarConfig(
     return { erro: "A imagem precisa de um endereço https." };
   }
 
+  const inicioLocal = String(formData.get("starts_at") ?? "").trim();
+  const agendar = formData.get("agendar") === "on";
+
+  if (agendar && !inicioLocal) {
+    return { erro: "Escolha a data e a hora da transmissão." };
+  }
+
+  const startsAt = agendar ? new Date(inicioLocal).toISOString() : null;
+  if (agendar && Number.isNaN(new Date(inicioLocal).getTime())) {
+    return { erro: "Data inválida." };
+  }
+
   const settings: RoomSettings = {
     ...sala.settings,
     gate: {
@@ -39,6 +51,7 @@ export async function salvarConfig(
       )[],
       consent: { required: formData.get("gate_consentimento") === "on" },
     },
+    auto_iniciar: formData.get("auto_iniciar") === "on",
     banner_final: {
       enabled: formData.get("banner_ativo") === "on",
       imagem_url: imagem || undefined,
@@ -48,9 +61,19 @@ export async function salvarConfig(
   };
 
   const db = createAdminClient();
+
+  // agendar só muda o status se a sala ainda não entrou no ar; live e
+  // encerrada mantêm o status e guardam só o horário novo
+  const status =
+    agendar && (sala.status === "draft" || sala.status === "scheduled")
+      ? "scheduled"
+      : !agendar && sala.status === "scheduled"
+        ? "draft"
+        : sala.status;
+
   const { error } = await db
     .from("rooms")
-    .update({ settings })
+    .update({ settings, starts_at: startsAt, status })
     .eq("id", sala.id);
 
   if (error) return { erro: error.message };

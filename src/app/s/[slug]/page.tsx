@@ -60,6 +60,7 @@ export default async function SalaPage({
           roomId={sala.id}
           titulo={sala.title}
           statusInicial={sala.status}
+          startsAt={sala.startsAt}
           bannerFinal={sala.bannerFinal}
           gate={sala.gate}
           inscrito={inscrito}

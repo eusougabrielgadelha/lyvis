@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   LiveKitRoom,
   useRoomContext,
@@ -12,29 +12,38 @@ import {
 } from "@livekit/components-react";
 import { ConnectionState, Track } from "livekit-client";
 import { mudarStatus, tokenHost } from "./actions";
-
-type Status = "draft" | "scheduled" | "live" | "ended";
+import { permitePublicar, type StatusSala } from "@/lib/room-lifecycle";
+import { ChecklistPreVoo, usePreVoo } from "@/components/pre-voo";
+import { ContagemRegressiva, useContagem } from "@/components/contagem-regressiva";
 
 /**
- * Regra central: o host só PUBLICA quando a sala está no ar.
+ * Painel do apresentador.
  *
- * Antes, ligar a câmera publicava na hora — o espectador via tudo antes de
- * "Entrar no ar" e continuava vendo depois de encerrar. Fora do ar, a câmera
- * agora é só prévia local (getUserMedia), que não passa pelo LiveKit.
+ * Duas regras que valem mais que qualquer conveniência de interface:
+ *
+ * 1. Fora do ar nada é publicado. A câmera vira prévia local (getUserMedia),
+ *    que não passa pelo LiveKit — ninguém do outro lado vê nada.
+ * 2. O início automático da live agendada só dispara com o pré-voo aprovado.
+ *    Entrar no ar com microfone mudo é pior do que começar dois minutos
+ *    atrasado.
  */
 function Controles({
   slug,
   status,
   aoMudarStatus,
+  startsAt,
+  autoIniciar,
 }: {
   slug: string;
-  status: Status;
-  aoMudarStatus: (s: Status) => void;
+  status: StatusSala;
+  aoMudarStatus: (s: StatusSala) => void;
+  startsAt: string | null;
+  autoIniciar: boolean;
 }) {
   const room = useRoomContext();
   const { localParticipant } = useLocalParticipant();
   const participantes = useParticipants();
-  const estado = useConnectionState();
+  const estadoConexao = useConnectionState();
   const tracks = useTracks([Track.Source.Camera], { onlySubscribed: false });
   const minhaTrack = tracks.find(
     (t) => t.participant.identity === localParticipant.identity,
@@ -44,9 +53,13 @@ function Controles({
   const [mic, setMic] = useState(false);
   const [ocupado, setOcupado] = useState(false);
   const previewRef = useRef<HTMLVideoElement>(null);
-  const previewStream = useRef<MediaStream | null>(null);
+  const jaAutoiniciou = useRef(false);
 
-  const noAr = status === "live";
+  const noAr = permitePublicar(status);
+  const conectado = estadoConexao === ConnectionState.Connected;
+
+  const preVoo = usePreVoo({ camera, microfone: mic, ativo: !noAr });
+  const contagem = useContagem(status === "scheduled" ? startsAt : null);
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") {
@@ -54,64 +67,54 @@ function Controles({
     }
   }, [room]);
 
-  const pararPreview = useCallback(() => {
-    previewStream.current?.getTracks().forEach((t) => t.stop());
-    previewStream.current = null;
-    if (previewRef.current) previewRef.current.srcObject = null;
-  }, []);
-
-  // prévia local enquanto a sala não está no ar
+  // prévia local aparece no lugar do vídeo enquanto não está no ar
   useEffect(() => {
-    if (noAr || !camera) {
-      pararPreview();
-      return;
-    }
-    let cancelado = false;
-    navigator.mediaDevices
-      .getUserMedia({ video: true, audio: false })
-      .then((stream) => {
-        if (cancelado) return stream.getTracks().forEach((t) => t.stop());
-        previewStream.current = stream;
-        if (previewRef.current) previewRef.current.srcObject = stream;
-      })
-      .catch(() => setCamera(false));
-
-    return () => {
-      cancelado = true;
-    };
-  }, [noAr, camera, pararPreview]);
+    if (previewRef.current) previewRef.current.srcObject = preVoo.stream;
+  }, [preVoo.stream]);
 
   // no ar: publica o que estiver ligado. Fora do ar: não publica nada.
   useEffect(() => {
-    if (estado !== ConnectionState.Connected) return;
-
+    if (!conectado) return;
     if (noAr) {
-      pararPreview(); // libera a câmera antes de o LiveKit abrir a dele
       localParticipant.setCameraEnabled(camera).catch(() => {});
       localParticipant.setMicrophoneEnabled(mic).catch(() => {});
     } else {
       localParticipant.setCameraEnabled(false).catch(() => {});
       localParticipant.setMicrophoneEnabled(false).catch(() => {});
     }
-  }, [noAr, camera, mic, estado, localParticipant, pararPreview]);
+  }, [noAr, camera, mic, conectado, localParticipant]);
 
-  useEffect(() => () => pararPreview(), [pararPreview]);
+  const entrarNoAr = async () => {
+    setOcupado(true);
+    aoMudarStatus("live");
+    await mudarStatus(slug, "live");
+    setOcupado(false);
+  };
+
+  // início automático da live agendada — só com o pré-voo aprovado
+  useEffect(() => {
+    if (jaAutoiniciou.current) return;
+    if (!autoIniciar || status !== "scheduled") return;
+    if (!contagem || contagem.fase !== "passou") return;
+    if (!conectado || !preVoo.pronto) return;
+
+    jaAutoiniciou.current = true;
+    // fora do corpo do efeito: mudar estado aqui dentro dispara render em cascata
+    const id = setTimeout(() => entrarNoAr(), 0);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoIniciar, status, contagem, conectado, preVoo.pronto]);
 
   const espectadores = Math.max(participantes.length - 1, 0);
-
-  async function alternarStatus(novo: Status) {
-    setOcupado(true);
-    aoMudarStatus(novo);
-    await mudarStatus(slug, novo as "live" | "ended");
-    setOcupado(false);
-  }
+  const horaChegou = contagem?.fase === "passou";
+  const seguraPorPreVoo = horaChegou && autoIniciar && !preVoo.pronto;
 
   return (
     <div className="space-y-4">
       <div className="relative aspect-video overflow-hidden rounded-xl bg-black">
         {noAr && minhaTrack ? (
           <VideoTrack trackRef={minhaTrack} className="h-full w-full object-cover" />
-        ) : camera ? (
+        ) : preVoo.stream ? (
           <video
             ref={previewRef}
             autoPlay
@@ -134,6 +137,27 @@ function Controles({
         </span>
       </div>
 
+      {status === "scheduled" && startsAt && (
+        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
+          <ContagemRegressiva
+            alvoIso={startsAt}
+            titulo={
+              autoIniciar
+                ? "Entra no ar sozinho em"
+                : "Horário marcado — você entra no ar em"
+            }
+          />
+          {seguraPorPreVoo && (
+            <p className="mt-3 text-center text-sm text-amber-400">
+              Chegou a hora, mas o pré-voo não passou. Ligue câmera e
+              microfone — a entrada automática está segurada.
+            </p>
+          )}
+        </div>
+      )}
+
+      {!noAr && <ChecklistPreVoo preVoo={preVoo} exigeMicrofone={mic} />}
+
       <div className="flex flex-wrap items-center gap-2">
         <button
           onClick={() => setCamera((c) => !c)}
@@ -151,7 +175,7 @@ function Controles({
         {!noAr ? (
           <button
             disabled={ocupado}
-            onClick={() => alternarStatus("live")}
+            onClick={() => entrarNoAr()}
             className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium disabled:opacity-50"
           >
             {status === "ended" ? "Voltar ao ar" : "Entrar no ar"}
@@ -159,7 +183,12 @@ function Controles({
         ) : (
           <button
             disabled={ocupado}
-            onClick={() => alternarStatus("ended")}
+            onClick={async () => {
+              setOcupado(true);
+              aoMudarStatus("ended");
+              await mudarStatus(slug, "ended");
+              setOcupado(false);
+            }}
             className="rounded-lg border border-neutral-700 px-4 py-2 text-sm disabled:opacity-50"
           >
             Encerrar transmissão
@@ -167,11 +196,11 @@ function Controles({
         )}
       </div>
 
-      <div className="flex gap-6 text-sm text-neutral-400">
+      <div className="flex flex-wrap gap-6 text-sm text-neutral-400">
         <span>
           Conexão:{" "}
           <b className="text-neutral-200">
-            {estado === ConnectionState.Connected ? "conectado" : estado}
+            {conectado ? "conectado" : estadoConexao}
           </b>
         </span>
         <span>
@@ -185,13 +214,17 @@ function Controles({
 export function HostClient({
   slug,
   status: statusInicial,
+  startsAt,
+  autoIniciar,
 }: {
   slug: string;
   status: string;
+  startsAt: string | null;
+  autoIniciar: boolean;
 }) {
   const [cred, setCred] = useState<{ url: string; token: string } | null>(null);
   const [erro, setErro] = useState<string | null>(null);
-  const [status, setStatus] = useState<Status>(statusInicial as Status);
+  const [status, setStatus] = useState<StatusSala>(statusInicial as StatusSala);
   const pediuToken = useRef(false);
 
   useEffect(() => {
@@ -207,7 +240,13 @@ export function HostClient({
 
   return (
     <LiveKitRoom serverUrl={cred.url} token={cred.token} connect audio={false} video={false}>
-      <Controles slug={slug} status={status} aoMudarStatus={setStatus} />
+      <Controles
+        slug={slug}
+        status={status}
+        aoMudarStatus={setStatus}
+        startsAt={startsAt}
+        autoIniciar={autoIniciar}
+      />
     </LiveKitRoom>
   );
 }

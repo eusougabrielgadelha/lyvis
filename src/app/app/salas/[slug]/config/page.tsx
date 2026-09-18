@@ -28,7 +28,13 @@ export default async function ConfigPage({
         </Link>
       </header>
 
-      <FormConfig slug={slug} gate={sala.gate} banner={sala.bannerFinal} />
+      <FormConfig
+        slug={slug}
+        gate={sala.gate}
+        banner={sala.bannerFinal}
+        startsAt={sala.startsAt}
+        autoIniciar={sala.autoIniciar}
+      />
     </main>
   );
 }

@@ -4,14 +4,26 @@ import { useActionState } from "react";
 import type { BannerFinal, GateConfig } from "@/lib/rooms";
 import { salvarConfig, type EstadoConfig } from "./actions";
 
+/** ISO do banco -> valor aceito pelo input datetime-local, no fuso local. */
+function paraInputLocal(iso: string | null) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
 export function FormConfig({
   slug,
   gate,
   banner,
+  startsAt,
+  autoIniciar,
 }: {
   slug: string;
   gate: GateConfig;
   banner: BannerFinal;
+  startsAt: string | null;
+  autoIniciar: boolean;
 }) {
   const [estado, formAction, pendente] = useActionState<EstadoConfig, FormData>(
     salvarConfig,
@@ -24,6 +36,48 @@ export function FormConfig({
   return (
     <form action={formAction} className="space-y-8">
       <input type="hidden" name="slug" value={slug} />
+
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-sm font-medium text-neutral-400">Agendamento</h2>
+          <p className="text-xs text-neutral-500">
+            Com horário marcado, quem abrir o link antes vê a contagem
+            regressiva — não importa se faltam 10 minutos ou 3 dias.
+          </p>
+        </div>
+
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            name="agendar"
+            defaultChecked={Boolean(startsAt)}
+          />
+          Marcar data e hora
+        </label>
+
+        <input
+          type="datetime-local"
+          name="starts_at"
+          defaultValue={paraInputLocal(startsAt)}
+          className={campo}
+        />
+
+        <label className="flex items-start gap-2 text-sm">
+          <input
+            type="checkbox"
+            name="auto_iniciar"
+            defaultChecked={autoIniciar}
+            className="mt-1"
+          />
+          <span>
+            Entrar no ar sozinho no horário
+            <span className="block text-xs text-neutral-500">
+              Só acontece com o painel aberto e o pré-voo aprovado. Câmera
+              negada ou microfone mudo seguram a entrada.
+            </span>
+          </span>
+        </label>
+      </section>
 
       <section className="space-y-3">
         <h2 className="text-sm font-medium text-neutral-400">

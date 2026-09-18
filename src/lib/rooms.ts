@@ -18,6 +18,8 @@ export type BannerFinal = {
 export type RoomSettings = {
   gate?: GateConfig;
   banner_final?: BannerFinal;
+  /** live agendada entra no ar sozinha no horário, se o pré-voo passar */
+  auto_iniciar?: boolean;
   display_viewers?: {
     enabled: boolean;
     mode?: "replace" | "add";
@@ -36,6 +38,8 @@ export type SalaPublica = {
   status: "draft" | "scheduled" | "live" | "ended";
   gate: GateConfig;
   bannerFinal: BannerFinal;
+  startsAt: string | null;
+  autoIniciar: boolean;
   settings: RoomSettings;
 };
 
@@ -54,7 +58,7 @@ export async function salaPorSlug(slug: string): Promise<SalaPublica | null> {
   const db = createAdminClient();
   const { data } = await db
     .from("rooms")
-    .select("id, account_id, slug, title, mode, status, settings")
+    .select("id, account_id, slug, title, mode, status, starts_at, settings")
     .eq("slug", slug)
     .maybeSingle();
 
@@ -70,6 +74,8 @@ export async function salaPorSlug(slug: string): Promise<SalaPublica | null> {
     status: data.status,
     gate: settings.gate ?? GATE_PADRAO,
     bannerFinal: settings.banner_final ?? { enabled: false },
+    startsAt: data.starts_at,
+    autoIniciar: settings.auto_iniciar ?? true,
     settings,
   };
 }

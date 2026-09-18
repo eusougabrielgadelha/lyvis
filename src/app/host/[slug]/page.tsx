@@ -51,7 +51,12 @@ export default async function HostPage({
         </div>
       </header>
 
-      <HostClient slug={slug} status={sala.status} />
+      <HostClient
+        slug={slug}
+        status={sala.status}
+        startsAt={sala.startsAt}
+        autoIniciar={sala.autoIniciar}
+      />
 
       <section className="mt-8">
         <h2 className="mb-3 text-sm font-medium text-neutral-400">Pitch</h2>

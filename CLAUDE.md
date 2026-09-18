@@ -6,7 +6,7 @@ Plataforma SaaS de lives e salas de vídeo com **pitch modular** — o apresenta
 - **Início:** 2026-09-17
 - **Status:** especificação / pré-MVP
 - **Domínio:** `lyvis.com.br` (registrado em 2026-09-17)
-- **Spec completa:** `docs/SPEC.md`
+- **Spec completa:** `docs/SPEC.md` · **Arquitetura:** `docs/ARQUITETURA.md` · **Plano:** `docs/PLANO.md`
 
 ## O que é
 
@@ -52,6 +52,25 @@ Nos dois, o host libera o **pitch**: blocos que aparecem abaixo do vídeo (texto
 8. **Segredos** (token da CAPI, API secret do GA4) ficam criptografados e nunca vão pro navegador.
 9. **Pitch é baixado na entrada da sala**, não no momento da liberação. Milhares de requisições no mesmo segundo derrubam o banco.
 10. **Todo bloco novo declara `feature`** no registro — já nasce vendável por plano.
+11. **Um canal de tempo real por assunto** (`:room`, `:pitch`, `:chat`). Três assinantes no mesmo canal = só um recebe.
+12. **Tempo real é o caminho rápido, não a verdade.** O espectador sempre reconfere o status por conta própria.
+13. **Nada de `setState` síncrono dentro de efeito** — o lint barra. Estado derivado ou `key` pra remontar.
+
+## Ciclo de vida da sala
+
+```
+draft ──agendar──▶ scheduled ──entrar no ar──▶ live ──encerrar──▶ ended
+  ▲                    │                         ▲                  │
+  └────────────────────┴──────voltar ao ar───────┴──────────────────┘
+```
+
+Regra em `src/lib/room-lifecycle.ts` — fonte única. Nenhuma tela decide sozinha
+quem publica, quem assiste e quando o pitch aparece.
+
+**Live agendada:** com horário marcado, quem abre o link vê contagem
+regressiva (de segundos a dias). No zero, a sala entra no ar sozinha — **desde
+que o pré-voo aprove câmera e microfone**. Sem pré-voo, a entrada fica segurada
+com aviso no painel: começar atrasado é melhor que transmitir mudo.
 
 ## Estrutura
 

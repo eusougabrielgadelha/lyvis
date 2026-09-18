@@ -9,6 +9,7 @@ import {
   normalizarTelefone,
   salaPorSlug,
 } from "@/lib/rooms";
+import { permiteTokenEspectador } from "@/lib/room-lifecycle";
 
 export type EstadoInscricao = { erro?: string };
 
@@ -124,7 +125,9 @@ export async function tokenEspectador(slug: string) {
 
   // sem isso, bastava forjar o cliente pra assistir antes de o host entrar
   // no ar (ou depois de encerrar). O token é a fronteira de verdade.
-  if (sala.status !== "live") throw new Error("A transmissão não está no ar");
+  if (!permiteTokenEspectador(sala.status)) {
+    throw new Error("A transmissão não está no ar");
+  }
 
   const anonId = await garantirViewerId();
   const db = createAdminClient();

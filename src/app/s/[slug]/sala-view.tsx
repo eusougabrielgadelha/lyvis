@@ -18,6 +18,7 @@ export function SalaView({
   roomId,
   titulo,
   statusInicial,
+  startsAt,
   bannerFinal,
   gate,
   inscrito,
@@ -29,6 +30,7 @@ export function SalaView({
   roomId: string;
   titulo: string;
   statusInicial: Status;
+  startsAt: string | null;
   bannerFinal: BannerFinal;
   gate: GateConfig;
   inscrito: boolean;
@@ -145,7 +147,7 @@ export function SalaView({
           {/* o vídeo acompanha a rolagem: a pessoa responde quiz e preenche
               o checkout sem perder o apresentador de vista */}
           <div className="sticky top-0 z-20 -mx-4 bg-neutral-950 px-4 py-2 md:mx-0 md:px-0">
-            <Palco slug={slug} status={status} />
+            <Palco slug={slug} status={status} startsAt={startsAt} />
           </div>
           {pitch}
         </div>

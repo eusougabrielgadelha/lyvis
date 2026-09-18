@@ -4,16 +4,17 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { viewerIdAtual } from "@/lib/viewer";
 import { salaPorSlug } from "@/lib/rooms";
 import { pitchSchema } from "@/blocks/schemas";
+import { permitePitch } from "@/lib/room-lifecycle";
 
 /** Pitch que já está no ar — pra quem entra depois da liberação. */
 export async function pitchAtivo(slug: string) {
   const sala = await salaPorSlug(slug);
   if (!sala) return null;
 
-  // Vale durante a live e DEPOIS dela: encerrada a transmissão, a oferta
-  // ganha a tela inteira. Só rascunho/agendada não mostram nada — é o que
-  // evita a oferta da live passada aparecer antes da próxima começar.
-  if (sala.status !== "live" && sala.status !== "ended") return null;
+  // Vale durante a live e DEPOIS dela (oferta pós-live). Rascunho e
+  // agendada nunca mostram — é o que evita a oferta da live passada
+  // aparecer antes da próxima começar.
+  if (!permitePitch(sala.status)) return null;
 
   const db = createAdminClient();
   const { data } = await db
