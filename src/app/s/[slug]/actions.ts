@@ -106,6 +106,17 @@ export async function inscrever(
   return {};
 }
 
+/**
+ * Status atual da sala. É a rede de segurança do espectador: o aviso em
+ * tempo real é o caminho rápido, mas se a conexão cair (Wi-Fi oscilando,
+ * notebook dormindo, aba em segundo plano) o aviso se perde e a pessoa
+ * ficaria presa na tela de encerrada enquanto a live já voltou.
+ */
+export async function statusDaSala(slug: string) {
+  const sala = await salaPorSlug(slug);
+  return sala?.status ?? null;
+}
+
 /** Token do LiveKit pro espectador: só assiste, nunca publica. */
 export async function tokenEspectador(slug: string) {
   const sala = await salaPorSlug(slug);

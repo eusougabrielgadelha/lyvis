@@ -9,6 +9,7 @@ import { AreaDoPitch, type Ativo } from "./pitch";
 import { Chat, type Mensagem } from "./chat";
 import { Inscricao } from "./inscricao";
 import { Encerrada } from "./encerrada";
+import { statusDaSala } from "./actions";
 
 type Status = "draft" | "scheduled" | "live" | "ended";
 
@@ -45,12 +46,28 @@ export function SalaView({
   // "voltar ao ar" não chegava no espectador.
   useEffect(() => {
     const supabase = createClient();
+
+    const conferir = () =>
+      statusDaSala(slug)
+        .then((s) => s && setStatus(s as Status))
+        .catch(() => {});
+
     const canal = supabase
       .channel(`sala:${roomId}:room`)
       .on("broadcast", { event: "room" }, ({ payload }) =>
         setStatus(payload.status as Status),
       )
-      .subscribe();
+      .subscribe((estadoCanal) => {
+        // ao (re)conectar, confere o que perdeu enquanto esteve fora
+        if (estadoCanal === "SUBSCRIBED") conferir();
+      });
+
+    const relogio = setInterval(conferir, 20000);
+    const aoVoltarPraAba = () => {
+      if (document.visibilityState === "visible") conferir();
+    };
+    document.addEventListener("visibilitychange", aoVoltarPraAba);
+    window.addEventListener("online", conferir);
 
     const canalPitch = supabase
       .channel(`sala:${roomId}:pitch`)
@@ -66,10 +83,13 @@ export function SalaView({
       .subscribe();
 
     return () => {
+      clearInterval(relogio);
+      document.removeEventListener("visibilitychange", aoVoltarPraAba);
+      window.removeEventListener("online", conferir);
       supabase.removeChannel(canal);
       supabase.removeChannel(canalPitch);
     };
-  }, [roomId]);
+  }, [roomId, slug]);
 
   const encerrada = status === "ended";
 
