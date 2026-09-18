@@ -73,7 +73,7 @@ export async function liberarPitch(
 
   if (error || !ativacao) return { erro: "Não consegui liberar o pitch." };
 
-  await db.channel(`sala:${sala.id}`).send({
+  await db.channel(`sala:${sala.id}:pitch`).send({
     type: "broadcast",
     event: "pitch",
     payload: {

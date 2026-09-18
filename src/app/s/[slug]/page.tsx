@@ -2,10 +2,9 @@ import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { salaPorSlug } from "@/lib/rooms";
 import { viewerIdAtual } from "@/lib/viewer";
-import { Palco } from "./palco";
-import { Chat, type Mensagem } from "./chat";
+import { Chat as _Chat, type Mensagem } from "./chat";
 import { Inscricao } from "./inscricao";
-import { AreaDoPitch } from "./pitch";
+import { SalaView } from "./sala-view";
 import { pitchAtivo } from "./pitch-actions";
 
 export default async function SalaPage({
@@ -48,46 +47,30 @@ export default async function SalaPage({
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-6 text-neutral-100">
-      <h1 className="mb-4 text-xl font-semibold">{sala.title}</h1>
-
       {precisaInscreverPraAssistir ? (
-        <div className="mx-auto max-w-md">
-          <Inscricao slug={slug} gate={sala.gate} titulo={sala.title} />
-        </div>
+        <>
+          <h1 className="mb-4 text-xl font-semibold">{sala.title}</h1>
+          <div className="mx-auto max-w-md">
+            <Inscricao slug={slug} gate={sala.gate} titulo={sala.title} />
+          </div>
+        </>
       ) : (
-        <div className="grid gap-4 md:grid-cols-[1fr_320px]">
-          <div className="space-y-4">
-            {/* o vídeo acompanha a rolagem: a pessoa responde quiz e preenche
-                o checkout sem perder o apresentador de vista */}
-            <div className="sticky top-0 z-20 -mx-4 bg-neutral-950 px-4 py-2 md:mx-0 md:px-0">
-              <Palco slug={slug} roomId={sala.id} statusInicial={sala.status} />
-            </div>
-            <AreaDoPitch
-              slug={slug}
-              roomId={sala.id}
-              viewerRef={anonId ?? undefined}
-              inicial={
-                ativo
-                  ? { activationId: ativo.activationId, definicao: ativo.definicao }
-                  : null
-              }
-            />
-          </div>
-
-          <div className="flex flex-col gap-3 md:h-[560px]">
-            {!inscrito && sala.gate.when === "to_chat" && (
-              <Inscricao slug={slug} gate={sala.gate} titulo="Quer falar?" />
-            )}
-            <div className="min-h-64 flex-1">
-              <Chat
-                slug={slug}
-                roomId={sala.id}
-                inicial={(mensagens ?? []) as Mensagem[]}
-                podeFalar={inscrito || sala.gate.when === "never"}
-              />
-            </div>
-          </div>
-        </div>
+        <SalaView
+          slug={slug}
+          roomId={sala.id}
+          titulo={sala.title}
+          statusInicial={sala.status}
+          bannerFinal={sala.bannerFinal}
+          gate={sala.gate}
+          inscrito={inscrito}
+          viewerRef={anonId ?? undefined}
+          mensagens={(mensagens ?? []) as Mensagem[]}
+          pitchInicial={
+            ativo
+              ? { activationId: ativo.activationId, definicao: ativo.definicao }
+              : null
+          }
+        />
       )}
     </main>
   );

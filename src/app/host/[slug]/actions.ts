@@ -55,27 +55,28 @@ export async function mudarStatus(slug: string, status: "live" | "ended") {
   const db = createAdminClient();
 
   // avisa quem está na sala: é esse evento que faz o vídeo aparecer e sumir
-  await db.channel(`sala:${sala.id}`).send({
+  await db.channel(`sala:${sala.id}:room`).send({
     type: "broadcast",
     event: "room",
     payload: { status },
   });
 
-  if (status === "ended") {
-    // encerrar a live encerra o pitch: ativação aberta esquecida faria a
-    // oferta aparecer sozinha pra quem entrasse depois
+  if (status === "live") {
+    // transmissão nova começa limpa: o pitch da anterior não volta sozinho
     await db
       .from("pitch_activations")
       .update({ ended_at: new Date().toISOString() })
       .eq("room_id", sala.id)
       .is("ended_at", null);
 
-    await db.channel(`sala:${sala.id}`).send({
+    await db.channel(`sala:${sala.id}:pitch`).send({
       type: "broadcast",
       event: "pitch",
       payload: { acao: "encerrar" },
     });
   }
+  // Ao ENCERRAR, o pitch continua no ar de propósito: quem passou uma hora
+  // na live encontra a oferta em destaque, sem vídeo competindo com ela.
 
   // NÃO revalidar /host aqui: o refresh remonta o LiveKitRoom e derruba a
   // transmissão no meio. O painel atualiza o status no próprio estado.

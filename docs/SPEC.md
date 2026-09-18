@@ -166,6 +166,29 @@ Espectador recebe identificador assinado no navegador. Anônimo assiste; ao pree
 - Domínio próprio por cliente (`live.cliente.com.br`) melhora atribuição (cookie de primeira parte).
 - **Só IDs, nunca script solto.** GTM só depois, em iframe isolado.
 
+## 8b. Ciclo de vida da sala e pós-live
+
+O link da sala é **permanente**, como no YouTube. Serve pro evento inteiro e
+pras próximas transmissões dela — o cliente nunca precisa mandar link novo,
+inclusive quando a internet dele cai e ele precisa voltar ao ar.
+
+| Status | Espectador vê |
+|---|---|
+| `draft` / `scheduled` | "A transmissão ainda não começou" · sem token, sem conexão |
+| `live` | Vídeo fixo no topo + pitch abaixo + chat |
+| `ended` | **Banner final** (ou faixa enxuta) + **pitch em destaque** + chat |
+
+**Pós-live:** o pitch continua no ar de propósito. Quem passou uma hora na live
+encontra a oferta ocupando a coluna principal, sem vídeo competindo. O
+progresso da pessoa é preservado: quem estava no checkout continua no checkout.
+
+**Banner final** (por sala, em `settings.banner_final`): imagem 16:9, título e
+texto. É onde o cliente põe o recado de encerramento, prazo ou CTA diferente.
+Sem banner, mostramos uma faixa discreta e a oferta ganha o espaço.
+
+**Voltar ao ar** reabre no mesmo link e **limpa o pitch da transmissão
+anterior** — transmissão nova começa do zero.
+
 ## 9. Espectadores exibidos (número configurável)
 
 ```json

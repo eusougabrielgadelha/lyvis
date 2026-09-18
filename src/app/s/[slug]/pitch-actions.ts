@@ -10,10 +10,10 @@ export async function pitchAtivo(slug: string) {
   const sala = await salaPorSlug(slug);
   if (!sala) return null;
 
-  // Só existe pitch no ar se a sala está no ar. Sem isso, uma ativação
-  // esquecida aberta continuava mostrando a oferta pra quem entrasse
-  // depois — inclusive na live seguinte.
-  if (sala.status !== "live") return null;
+  // Vale durante a live e DEPOIS dela: encerrada a transmissão, a oferta
+  // ganha a tela inteira. Só rascunho/agendada não mostram nada — é o que
+  // evita a oferta da live passada aparecer antes da próxima começar.
+  if (sala.status !== "live" && sala.status !== "ended") return null;
 
   const db = createAdminClient();
   const { data } = await db

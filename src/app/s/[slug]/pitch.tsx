@@ -1,60 +1,76 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import type { Pitch as DefinicaoPitch } from "@/blocks/schemas";
 import { etapaInicial, proximaEtapa } from "@/lib/pitch-engine";
 import { RenderizarBloco } from "@/blocks/views";
 import { registrarEvento } from "./pitch-actions";
 
-type Ativo = { activationId: string; definicao: DefinicaoPitch } | null;
+export type Ativo = {
+  activationId: string;
+  definicao: DefinicaoPitch;
+} | null;
+
+type Progresso = { etapaId: string; respostas: Record<string, string> };
+
+const chave = (activationId: string) => `lyvis_pitch_${activationId}`;
+
+/**
+ * Progresso guardado por ativação. Ao encerrar a live o layout muda e este
+ * componente remonta: sem isso, quem estava preenchendo o checkout voltava
+ * pro começo do quiz.
+ */
+function lerProgresso(activationId: string): Progresso | null {
+  try {
+    const bruto = sessionStorage.getItem(chave(activationId));
+    return bruto ? (JSON.parse(bruto) as Progresso) : null;
+  } catch {
+    return null;
+  }
+}
+
+function salvarProgresso(activationId: string, p: Progresso) {
+  try {
+    sessionStorage.setItem(chave(activationId), JSON.stringify(p));
+  } catch {
+    // navegador sem sessionStorage não pode quebrar a sala
+  }
+}
 
 export function AreaDoPitch({
   slug,
   roomId,
   viewerRef,
-  inicial,
+  ativo,
+  destaque = false,
 }: {
   slug: string;
   roomId: string;
   viewerRef?: string;
-  inicial: Ativo;
+  /** quem manda é a SalaView: ela não remonta quando a live encerra */
+  ativo: Ativo;
+  destaque?: boolean;
 }) {
-  const [ativo, setAtivo] = useState<Ativo>(inicial);
-  const [etapaId, setEtapaId] = useState<string | null>(
-    inicial ? etapaInicial(inicial.definicao) : null,
-  );
+  const [etapaId, setEtapaId] = useState<string | null>(null);
   const [respostas, setRespostas] = useState<Record<string, string>>({});
 
-  // liberação e encerramento chegam por broadcast: a tela muda na hora
+  // ativação nova (ou remontagem): retoma de onde a pessoa parou
   useEffect(() => {
-    const supabase = createClient();
-    const canal = supabase
-      .channel(`sala:${roomId}`)
-      .on("broadcast", { event: "pitch" }, ({ payload }) => {
-        if (payload.acao === "encerrar") {
-          setAtivo(null);
-          setEtapaId(null);
-          setRespostas({});
-          return;
-        }
-        if (payload.acao === "liberar") {
-          setAtivo({
-            activationId: payload.activationId,
-            definicao: payload.definicao as DefinicaoPitch,
-          });
-          setEtapaId(etapaInicial(payload.definicao as DefinicaoPitch));
-          setRespostas({});
-        }
-      })
-      .subscribe();
+    if (!ativo) {
+      setEtapaId(null);
+      setRespostas({});
+      return;
+    }
+    const salvo = lerProgresso(ativo.activationId);
+    setEtapaId(salvo?.etapaId ?? etapaInicial(ativo.definicao));
+    setRespostas(salvo?.respostas ?? {});
+  }, [ativo]);
 
-    return () => {
-      supabase.removeChannel(canal);
-    };
-  }, [roomId]);
+  useEffect(() => {
+    if (!ativo || !etapaId) return;
+    salvarProgresso(ativo.activationId, { etapaId, respostas });
+  }, [ativo, etapaId, respostas]);
 
-  // marca que esta pessoa viu a etapa
   useEffect(() => {
     if (!ativo || !etapaId) return;
     registrarEvento({
@@ -103,6 +119,7 @@ export function AreaDoPitch({
   );
 
   if (!ativo || !etapaId) {
+    if (destaque) return null; // encerrada e sem oferta: nada de caixa vazia
     return (
       <div className="rounded-xl border border-dashed border-neutral-800 p-6 text-sm text-neutral-500">
         O pitch aparece aqui quando o apresentador liberar.
@@ -114,7 +131,18 @@ export function AreaDoPitch({
   if (!etapa) return null;
 
   return (
-    <div className="space-y-4 rounded-xl border border-neutral-800 bg-neutral-900 p-5">
+    <div
+      className={
+        destaque
+          ? "space-y-5 rounded-xl border border-blue-600/40 bg-neutral-900 p-6 shadow-[0_0_0_1px_rgba(37,99,235,0.15)] md:p-8"
+          : "space-y-4 rounded-xl border border-neutral-800 bg-neutral-900 p-5"
+      }
+    >
+      {destaque && (
+        <p className="text-xs font-semibold uppercase tracking-wide text-blue-400">
+          Oferta apresentada na live
+        </p>
+      )}
       {etapa.blocos.map((bloco) => (
         <RenderizarBloco
           key={bloco.id}

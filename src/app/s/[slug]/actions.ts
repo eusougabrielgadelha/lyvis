@@ -185,7 +185,7 @@ export async function enviarMensagem(slug: string, texto: string) {
 
   if (error) return { erro: "Não consegui enviar." };
 
-  await db.channel(`sala:${sala.id}`).send({
+  await db.channel(`sala:${sala.id}:chat`).send({
     type: "broadcast",
     event: "chat",
     payload: msg,

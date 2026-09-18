@@ -8,7 +8,6 @@ import {
   VideoTrack,
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
-import { createClient } from "@/lib/supabase/client";
 import { tokenEspectador } from "./actions";
 
 type Status = "draft" | "scheduled" | "live" | "ended";
@@ -17,7 +16,11 @@ function Video() {
   const tracks = useTracks([Track.Source.Camera, Track.Source.ScreenShare], {
     onlySubscribed: true,
   });
-  const principal = tracks[0];
+  // prefere uma faixa realmente ativa: depois de encerrar e voltar ao ar, o
+  // host pode ficar com uma publicação antiga mutada, e escolher essa deixa a
+  // tela preta com o apresentador falando
+  const principal =
+    tracks.find((t) => t.publication && !t.publication.isMuted) ?? tracks[0];
 
   if (!principal) {
     return (
@@ -38,34 +41,10 @@ function Aviso({ texto }: { texto: string }) {
   );
 }
 
-export function Palco({
-  slug,
-  roomId,
-  statusInicial,
-}: {
-  slug: string;
-  roomId: string;
-  statusInicial: Status;
-}) {
-  const [status, setStatus] = useState<Status>(statusInicial);
+export function Palco({ slug, status }: { slug: string; status: Status }) {
   const [cred, setCred] = useState<{ url: string; token: string } | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const pedindo = useRef(false);
-
-  // o host avisa quando entra no ar e quando encerra
-  useEffect(() => {
-    const supabase = createClient();
-    const canal = supabase
-      .channel(`sala:${roomId}`)
-      .on("broadcast", { event: "room" }, ({ payload }) => {
-        setStatus(payload.status as Status);
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(canal);
-    };
-  }, [roomId]);
 
   // só pede token e conecta quando a sala está no ar
   useEffect(() => {

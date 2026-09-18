@@ -7,8 +7,17 @@ export type GateConfig = {
   consent?: { required: boolean; text?: string };
 };
 
+/** Aparece no lugar do vídeo quando a transmissão encerra. */
+export type BannerFinal = {
+  enabled: boolean;
+  imagem_url?: string;
+  titulo?: string;
+  texto?: string;
+};
+
 export type RoomSettings = {
   gate?: GateConfig;
+  banner_final?: BannerFinal;
   display_viewers?: {
     enabled: boolean;
     mode?: "replace" | "add";
@@ -26,6 +35,7 @@ export type SalaPublica = {
   mode: "live" | "meeting";
   status: "draft" | "scheduled" | "live" | "ended";
   gate: GateConfig;
+  bannerFinal: BannerFinal;
   settings: RoomSettings;
 };
 
@@ -59,6 +69,7 @@ export async function salaPorSlug(slug: string): Promise<SalaPublica | null> {
     mode: data.mode,
     status: data.status,
     gate: settings.gate ?? GATE_PADRAO,
+    bannerFinal: settings.banner_final ?? { enabled: false },
     settings,
   };
 }

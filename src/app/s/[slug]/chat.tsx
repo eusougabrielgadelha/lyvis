@@ -30,7 +30,7 @@ export function Chat({
   useEffect(() => {
     const supabase = createClient();
     const canal = supabase
-      .channel(`sala:${roomId}`)
+      .channel(`sala:${roomId}:chat`)
       .on("broadcast", { event: "chat" }, ({ payload }) => {
         setMensagens((atuais) =>
           atuais.some((m) => m.id === payload.id)
