@@ -111,6 +111,7 @@ export function SalaView({
 
   const pitch = (
     <AreaDoPitch
+      key={ativo?.activationId ?? "sem-pitch"}
       slug={slug}
       roomId={roomId}
       viewerRef={viewerRef}

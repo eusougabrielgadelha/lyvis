@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { salaPorSlug } from "@/lib/rooms";
 import { viewerIdAtual } from "@/lib/viewer";
-import { Chat as _Chat, type Mensagem } from "./chat";
+import type { Mensagem } from "./chat";
 import { Inscricao } from "./inscricao";
 import { SalaView } from "./sala-view";
 import { pitchAtivo } from "./pitch-actions";

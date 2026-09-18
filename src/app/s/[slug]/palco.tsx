@@ -49,8 +49,7 @@ export function Palco({ slug, status }: { slug: string; status: Status }) {
   // só pede token e conecta quando a sala está no ar
   useEffect(() => {
     if (status !== "live") {
-      setCred(null);
-      pedindo.current = false;
+      pedindo.current = false; // ref, não estado: nada de render em cascata
       return;
     }
     if (pedindo.current) return;
@@ -61,6 +60,9 @@ export function Palco({ slug, status }: { slug: string; status: Status }) {
       .catch(() => setErro("Não consegui entrar na transmissão."));
   }, [status, slug]);
 
+  // credencial só vale enquanto a sala está no ar
+  const credAtiva = status === "live" ? cred : null;
+
   return (
     <div className="aspect-video w-full overflow-hidden rounded-xl bg-black">
       {erro ? (
@@ -69,12 +71,12 @@ export function Palco({ slug, status }: { slug: string; status: Status }) {
         <Aviso texto="Esta transmissão foi encerrada." />
       ) : status !== "live" ? (
         <Aviso texto="A transmissão ainda não começou. Deixe esta página aberta." />
-      ) : !cred ? (
+      ) : !credAtiva ? (
         <Aviso texto="Entrando na transmissão..." />
       ) : (
         <LiveKitRoom
-          serverUrl={cred.url}
-          token={cred.token}
+          serverUrl={credAtiva.url}
+          token={credAtiva.token}
           connect
           video={false}
           audio={false}

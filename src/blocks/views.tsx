@@ -72,16 +72,12 @@ export function BlocoTimer({
 }: {
   props: { rotulo: string; segundos: number };
 }) {
-  const [restante, setRestante] = useState(props.segundos);
+  const [restante, setRestante] = useState(() => props.segundos);
 
   useEffect(() => {
-    setRestante(props.segundos);
-    const t = setInterval(
-      () => setRestante((s) => (s > 0 ? s - 1 : 0)),
-      1000,
-    );
+    const t = setInterval(() => setRestante((s) => (s > 0 ? s - 1 : 0)), 1000);
     return () => clearInterval(t);
-  }, [props.segundos]);
+  }, []);
 
   const mm = String(Math.floor(restante / 60)).padStart(2, "0");
   const ss = String(restante % 60).padStart(2, "0");

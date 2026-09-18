@@ -51,20 +51,16 @@ export function AreaDoPitch({
   ativo: Ativo;
   destaque?: boolean;
 }) {
-  const [etapaId, setEtapaId] = useState<string | null>(null);
-  const [respostas, setRespostas] = useState<Record<string, string>>({});
-
-  // ativação nova (ou remontagem): retoma de onde a pessoa parou
-  useEffect(() => {
-    if (!ativo) {
-      setEtapaId(null);
-      setRespostas({});
-      return;
-    }
-    const salvo = lerProgresso(ativo.activationId);
-    setEtapaId(salvo?.etapaId ?? etapaInicial(ativo.definicao));
-    setRespostas(salvo?.respostas ?? {});
-  }, [ativo]);
+  // Estado inicial lido na montagem. Quem troca de ativação é a SalaView,
+  // que remonta este componente com key={activationId} — assim não precisa
+  // de efeito sincronizando estado (que gera render em cascata).
+  const [etapaId, setEtapaId] = useState<string | null>(() => {
+    if (!ativo) return null;
+    return lerProgresso(ativo.activationId)?.etapaId ?? etapaInicial(ativo.definicao);
+  });
+  const [respostas, setRespostas] = useState<Record<string, string>>(() =>
+    ativo ? (lerProgresso(ativo.activationId)?.respostas ?? {}) : {},
+  );
 
   useEffect(() => {
     if (!ativo || !etapaId) return;
